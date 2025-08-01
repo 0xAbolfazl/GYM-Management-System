@@ -1,0 +1,39 @@
+{% extends "base.html" %}
+
+{% block content %}
+<section class="registration-form">
+    <h2>Register New Athlete</h2>
+    <form method="POST" action="{{ url_for('register') }}">
+        <div class="form-group">
+            <label for="full_name">Full Name</label>
+            <input type="text" id="full_name" name="full_name" required>
+        </div>
+        
+        <div class="form-group">
+            <label for="phone">Phone Number</label>
+            <input type="tel" id="phone" name="phone" required>
+        </div>
+        
+        <div class="form-group">
+            <label for="days">Training Days</label>
+            <div class="days-options">
+                <button type="button" class="day-option" data-days="30">30 Days</button>
+                <button type="button" class="day-option" data-days="60">60 Days</button>
+                <button type="button" class="day-option" data-days="90">90 Days</button>
+                <button type="button" class="day-option" data-days="180">180 Days</button>
+            </div>
+            <input type="number" id="days" name="days" min="1" required>
+        </div>
+        
+        <button type="submit" class="btn-submit">Register Athlete</button>
+    </form>
+</section>
+
+<script>
+    document.querySelectorAll('.day-option').forEach(button => {
+        button.addEventListener('click', function() {
+            document.getElementById('days').value = this.getAttribute('data-days');
+        });
+    });
+</script>
+{% endblock %}
