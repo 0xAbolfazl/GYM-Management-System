@@ -1,6 +1,9 @@
 {% extends "base.html" %}
 
 {% block content %}
+<head>
+        <link rel="stylesheet" href="{{ url_for('static', filename='css/edit_athlete.css') }}">
+</head>
 <section class="registration-form">
     <h2>Edit Athlete: {{ athlete.first_name }} {{ athlete.last_name }}</h2>
     <form method="POST" action="{{ url_for('edit_athlete', athlete_id=athlete.id) }}">

@@ -3,43 +3,146 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Gym Athlete Registration</title>
-    <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
-    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600&display=swap" rel="stylesheet">
+    <title>GymPro - Athlete Management</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/base.css') }}">
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
 </head>
 <body>
-    <header>
-        <div class="container">
-            <h1>Gym Athlete Registration</h1>
-                <nav>
-                    <ul>
-                        <li><a href="{{ url_for('home') }}">Dashboard</a></li>
-                        <li><a href="{{ url_for('register') }}">Register Athlete</a></li>
-                        <li><a href="{{ url_for('athletes') }}">View Athletes</a></li>
-                        <li><a href="{{ url_for('history') }}">Activity History</a></li>
-                    </ul>
-                </nav>
-        </div>
-    </header>
-    
-    <main class="container">
-        {% block content %}{% endblock %}
-    </main>
-    
-    <footer>
-        <div class="container">
-            <p>Gym Management System &copy; 2023</p>
-        </div>
-    </footer>
+    <div class="app-container">
+        <!-- Sidebar Navigation -->
+        <aside class="sidebar">
+            <div class="sidebar-header">
+                <div class="logo">
+                    <i class="fas fa-dumbbell"></i>
+                    <span>GymPro</span>
+                </div>
+            </div>
+            <nav class="sidebar-nav">
+                <ul>
+                    <li>
+                        <a href="{{ url_for('home') }}" class="{{ 'active' if request.endpoint == 'home' }}">
+                            <i class="fas fa-tachometer-alt"></i>
+                            <span>Dashboard</span>
+                        </a>
+                    </li>
+                    <li>
+                        <a href="{{ url_for('register') }}" class="{{ 'active' if request.endpoint == 'register' }}">
+                            <i class="fas fa-user-plus"></i>
+                            <span>Register Athlete</span>
+                        </a>
+                    </li>
+                    <li>
+                        <a href="{{ url_for('athletes') }}" class="{{ 'active' if request.endpoint == 'athletes' }}">
+                            <i class="fas fa-users"></i>
+                            <span>View Athletes</span>
+                        </a>
+                    </li>
+                    <li>
+                        <a href="{{ url_for('history') }}" class="{{ 'active' if request.endpoint == 'history' }}">
+                            <i class="fas fa-history"></i>
+                            <span>Activity History</span>
+                        </a>
+                    </li>
+                </ul>
+            </nav>
+            <div class="sidebar-footer">
+                <div class="user-profile">
+                    <div class="avatar">
+                        <i class="fas fa-user-shield"></i>
+                    </div>
+                    <div class="user-info">
+                        <span class="username">Admin</span>
+                        <span class="role">Manager</span>
+                    </div>
+                </div>
+            </div>
+        </aside>
+
+        <!-- Main Content -->
+        <main class="main-content">
+            <header class="main-header">
+                <div class="header-left">
+                    <button class="sidebar-toggle" id="sidebarToggle">
+                        <span class="hamburger"></span>
+                    </button>
+                    <h1>{% block page_title %}{% endblock %}</h1>
+                </div>
+                <div class="header-right">
+                    <!-- Optional: Add any header right content here -->
+                </div>
+            </header>
+
+            <div class="content-container">
+                {% with messages = get_flashed_messages(with_categories=true) %}
+                    {% if messages %}
+                        <div class="flash-messages">
+                            {% for category, message in messages %}
+                                <div class="flash-{{ category }}">
+                                    <i class="fas fa-{{ 'check-circle' if category == 'success' else 'exclamation-circle' }}"></i>
+                                    {{ message }}
+                                    <button class="flash-close">
+                                        <i class="fas fa-times"></i>
+                                    </button>
+                                </div>
+                            {% endfor %}
+                        </div>
+                    {% endif %}
+                {% endwith %}
+
+                {% block content %}{% endblock %}
+            </div>
+
+            <footer class="main-footer">
+                <p>&copy; 2025 GymPro Management System. All rights reserved.</p>
+            </footer>
+        </main>
+    </div>
+
+    <script>
+        // Toggle sidebar functionality
+        document.getElementById('sidebarToggle').addEventListener('click', function() {
+            const sidebar = document.querySelector('.sidebar');
+            const toggleBtn = this;
+            
+            sidebar.classList.toggle('active');
+            toggleBtn.classList.toggle('active');
+            
+            // Add overlay when sidebar is active
+            if (sidebar.classList.contains('active')) {
+                const overlay = document.createElement('div');
+                overlay.className = 'sidebar-overlay';
+                overlay.style.position = 'fixed';
+                overlay.style.top = '0';
+                overlay.style.left = '0';
+                overlay.style.right = '0';
+                overlay.style.bottom = '0';
+                overlay.style.backgroundColor = 'rgba(0,0,0,0.5)';
+                overlay.style.zIndex = '99';
+                overlay.style.display = 'none';
+                document.body.appendChild(overlay);
+                
+                setTimeout(() => {
+                    overlay.style.display = 'block';
+                }, 10);
+                
+                overlay.addEventListener('click', function() {
+                    sidebar.classList.remove('active');
+                    toggleBtn.classList.remove('active');
+                    overlay.remove();
+                });
+            } else {
+                const overlay = document.querySelector('.sidebar-overlay');
+                if (overlay) overlay.remove();
+            }
+        });
+
+        // Close flash messages
+        document.querySelectorAll('.flash-close').forEach(btn => {
+            btn.addEventListener('click', function() {
+                this.parentElement.remove();
+            });
+        });
+    </script>
 </body>
 </html>
-
-{% with messages = get_flashed_messages(with_categories=true) %}
-    {% if messages %}
-        <div class="flash-messages">
-            {% for category, message in messages %}
-                <div class="flash-{{ category }}">{{ message }}</div>
-            {% endfor %}
-        </div>
-    {% endif %}
-{% endwith %}

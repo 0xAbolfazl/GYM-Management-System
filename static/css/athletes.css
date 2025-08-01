@@ -1,0 +1,225 @@
+/* ========== ATHLETES LIST STYLES ========== */
+
+.athletes-list {
+  padding: var(--spacing-lg);
+  max-width: 1400px;
+  margin: 0 auto;
+}
+
+.athletes-list h2 {
+  font-size: 1.75rem;
+  margin-bottom: var(--spacing-lg);
+  color: #4361ee;
+  font-weight: 600;
+}
+
+/* ===== SEARCH FILTER ===== */
+.search-filter {
+  margin-bottom: var(--spacing-xl);
+}
+
+.search-filter form {
+  display: flex;
+  gap: var(--spacing-sm);
+  max-width: 600px;
+}
+
+.search-filter input {
+  flex: 1;
+  padding: var(--spacing-md);
+  border: 1px solid var(--border-color);
+  border-radius: var(--radius-md);
+  font-family: 'Poppins', sans-serif;
+  transition: all 0.2s ease;
+}
+
+.search-filter input:focus {
+  outline: none;
+  border-color: var(--primary-color);
+  box-shadow: 0 0 0 3px rgba(67, 97, 238, 0.15);
+}
+
+.search-filter button {
+  padding: 0 var(--spacing-lg);
+  background-color: var(--primary-color);
+  color: white;
+  border: none;
+  border-radius: var(--radius-md);
+  font-family: 'Poppins', sans-serif;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.search-filter button:hover {
+  background-color: var(--secondary-color);
+}
+
+/* ===== ATHLETES GRID ===== */
+.athletes-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+  gap: var(--spacing-lg);
+}
+
+.athlete-card {
+  background: white;
+  border-radius: var(--radius-lg);
+  box-shadow: var(--shadow-md);
+  overflow: hidden;
+  transition: all 0.3s ease;
+}
+
+.athlete-card:hover {
+  transform: translateY(-5px);
+  box-shadow: var(--shadow-lg);
+}
+
+.athlete-header {
+  padding: var(--spacing-md);
+  background-color: var(--primary-light);
+  border-bottom: 1px solid var(--border-color);
+  position: relative;
+}
+
+.athlete-header h3 {
+  margin: 0;
+  font-size: 1.25rem;
+  color: var(--dark-color);
+}
+
+.id-badge {
+  position: absolute;
+  top: var(--spacing-md);
+  right: var(--spacing-md);
+  background-color: var(--light-color);
+  color: var(--dark-color);
+  padding: 2px var(--spacing-sm);
+  border-radius: var(--radius-sm);
+  font-size: 0.75rem;
+  font-weight: 500;
+}
+
+.days-badge {
+  display: inline-block;
+  margin-top: var(--spacing-xs);
+  padding: 2px var(--spacing-sm);
+  border-radius: var(--radius-sm);
+  font-size: 0.75rem;
+  font-weight: 500;
+  background-color: var(--success-color);
+  color: white;
+}
+
+.days-badge.expiring {
+  background-color: var(--danger-color);
+}
+
+/* ===== ATHLETE INFO ===== */
+.athlete-essential-info {
+  padding: var(--spacing-md);
+}
+
+.athlete-essential-info p {
+  margin: 0 0 var(--spacing-sm) 0;
+  font-size: 0.9rem;
+}
+
+.athlete-essential-info strong {
+  color: var(--dark-color);
+  font-weight: 500;
+}
+
+/* ===== ACTION BUTTONS ===== */
+.athlete-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--spacing-sm);
+  padding: var(--spacing-md);
+  border-top: 1px solid var(--border-color);
+  background-color: #f8fafc;
+}
+
+.action-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--spacing-xs);
+  padding: var(--spacing-xs) var(--spacing-sm);
+  border-radius: var(--radius-sm);
+  font-size: 0.85rem;
+  font-weight: 500;
+  transition: all 0.2s ease;
+}
+
+.view-btn {
+  background-color: var(--info-color);
+  color: white;
+}
+
+.view-btn:hover {
+  background-color: #3b82f6;
+}
+
+.edit-btn {
+  background-color: var(--warning-color);
+  color: white;
+}
+
+.edit-btn:hover {
+  background-color: #f59e0b;
+}
+
+.renew-btn {
+  background-color: var(--success-color);
+  color: white;
+}
+
+.renew-btn:hover {
+  background-color: #10b981;
+}
+
+.delete-btn {
+  background-color: var(--danger-color);
+  color: white;
+  border: none;
+  cursor: pointer;
+}
+
+.delete-btn:hover {
+  background-color: #ef4444;
+}
+
+.delete-form {
+  margin: 0;
+}
+
+/* ========== RESPONSIVE ADJUSTMENTS ========== */
+@media (max-width: 768px) {
+  .athletes-grid {
+    grid-template-columns: repeat(auto-fill, minmax(250px, 1fr));
+  }
+  
+  .search-filter form {
+    flex-direction: column;
+  }
+  
+  .search-filter button {
+    padding: var(--spacing-sm);
+  }
+}
+
+@media (max-width: 480px) {
+  .athletes-grid {
+    grid-template-columns: 1fr;
+  }
+  
+  .athlete-actions {
+    flex-direction: column;
+  }
+  
+  .action-btn {
+    width: 100%;
+    justify-content: center;
+    padding: var(--spacing-sm);
+  }
+}

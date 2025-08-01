@@ -1,0 +1,181 @@
+/* ========== ACTIVITY HISTORY STYLES ========== */
+
+.history-section {
+  padding: var(--spacing-lg);
+  max-width: 1200px;
+  margin: 0 auto;
+}
+
+.history-section h2 {
+  font-size: 1.75rem;
+  margin-bottom: var(--spacing-xl);
+  color: var(--primary-color);
+  font-weight: 600;
+}
+
+/* ===== FILTER STYLES ===== */
+.activity-filters {
+  margin-bottom: var(--spacing-xl);
+}
+
+.activity-filters form {
+  display: flex;
+  gap: var(--spacing-md);
+  flex-wrap: wrap;
+}
+
+.activity-filters input,
+.activity-filters select {
+  padding: var(--spacing-sm) var(--spacing-md);
+  border: 1px solid var(--border-color);
+  border-radius: var(--radius-md);
+  font-family: 'Poppins', sans-serif;
+  transition: all 0.2s ease;
+}
+
+.activity-filters input {
+  flex: 1;
+  min-width: 250px;
+}
+
+.activity-filters select {
+  min-width: 180px;
+}
+
+.activity-filters button {
+  padding: var(--spacing-sm) var(--spacing-lg);
+  background-color: var(--primary-color);
+  color: white;
+  border: none;
+  border-radius: var(--radius-md);
+  font-family: 'Poppins', sans-serif;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.activity-filters button:hover {
+  background-color: var(--secondary-color);
+}
+
+/* ===== ACTIVITY LIST ===== */
+.activity-list {
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-md);
+}
+
+.no-activities {
+  text-align: center;
+  padding: var(--spacing-xl);
+  color: var(--gray-color);
+  font-style: italic;
+}
+
+/* ===== ACTIVITY CARD ===== */
+.activity-card {
+  background: white;
+  border-radius: var(--radius-lg);
+  box-shadow: var(--shadow-sm);
+  overflow: hidden;
+  transition: all 0.3s ease;
+}
+
+.activity-card:hover {
+  transform: translateY(-2px);
+  box-shadow: var(--shadow-md);
+}
+
+.activity-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: var(--spacing-md);
+  background-color: var(--primary-light);
+  border-bottom: 1px solid var(--border-color);
+}
+
+.activity-action {
+  font-weight: 600;
+  padding: var(--spacing-xs) var(--spacing-sm);
+  border-radius: var(--radius-sm);
+  text-transform: capitalize;
+}
+
+.activity-action.registration {
+  background-color: var(--success-color);
+  color: white;
+}
+
+.activity-action.edit {
+  background-color: var(--warning-color);
+  color: white;
+}
+
+.activity-action.renewal {
+  background-color: var(--info-color);
+  color: white;
+}
+
+.activity-action.deletion {
+  background-color: var(--danger-color);
+  color: white;
+}
+
+.activity-timestamp {
+  font-size: 0.875rem;
+  color: var(--gray-color);
+}
+
+/* ===== ACTIVITY DETAILS ===== */
+.activity-details {
+  padding: var(--spacing-md);
+}
+
+.activity-details p {
+  margin: 0 0 var(--spacing-sm) 0;
+}
+
+.activity-athlete a {
+  color: var(--primary-color);
+  text-decoration: none;
+  transition: color 0.2s ease;
+}
+
+.activity-athlete a:hover {
+  color: var(--secondary-color);
+  text-decoration: underline;
+}
+
+/* ========== RESPONSIVE ADJUSTMENTS ========== */
+@media (max-width: 768px) {
+  .history-section {
+    padding: var(--spacing-md);
+  }
+  
+  .activity-header {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: var(--spacing-sm);
+  }
+  
+  .activity-filters form {
+    flex-direction: column;
+  }
+  
+  .activity-filters input,
+  .activity-filters select,
+  .activity-filters button {
+    width: 100%;
+  }
+}
+
+@media (max-width: 480px) {
+  .activity-action {
+    font-size: 0.875rem;
+  }
+  
+  .activity-timestamp {
+    font-size: 0.75rem;
+  }
+}
