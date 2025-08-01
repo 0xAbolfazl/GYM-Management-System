@@ -1,0 +1,78 @@
+/* تمدید عضویت - استایل اختصاصی */
+.renewal-card {
+    max-width: 600px;
+    margin: 0 auto;
+    background: white;
+    border-radius: var(--radius-xl);
+    box-shadow: var(--shadow-lg);
+    overflow: hidden;
+}
+
+.renewal-header {
+    background: linear-gradient(135deg, var(--success-color), #22c55e);
+    color: white;
+    padding: var(--spacing-lg);
+    text-align: center;
+}
+
+.renewal-header h2 {
+    margin: 0;
+    font-size: 1.5rem;
+    font-weight: 600;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: var(--spacing-sm);
+}
+
+.renewal-body {
+    padding: var(--spacing-xl);
+}
+
+.current-info {
+    background: var(--primary-light);
+    padding: var(--spacing-md);
+    border-radius: var(--radius-md);
+    margin-bottom: var(--spacing-lg);
+    border-left: 4px solid var(--primary-color);
+}
+
+.current-info h3 {
+    color: var(--primary-color);
+    margin-bottom: var(--spacing-sm);
+}
+
+.days-input {
+    margin-top: var(--spacing-sm);
+}
+
+.new-end-date {
+    background: #f8fafc;
+    font-weight: 500;
+}
+
+.action-buttons {
+    display: flex;
+    gap: var(--spacing-md);
+    margin-top: var(--spacing-lg);
+}
+
+.renew-btn {
+    background: var(--success-color);
+    flex: 1;
+}
+
+.renew-btn:hover {
+    background: #22c55e;
+}
+
+.cancel-btn {
+    background: var(--light-color);
+    color: var(--dark-color);
+    border: 1px solid var(--border-color);
+    flex: 1;
+}
+
+.cancel-btn:hover {
+    background: #f1f5f9;
+}

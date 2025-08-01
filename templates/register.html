@@ -1,73 +1,75 @@
 {% extends "base.html" %}
 
-{% block content %}
-<section class="registration-form">
-    <h2>Register New Athlete</h2>
-    <form method="POST" action="{{ url_for('register') }}">
-        <div class="form-row">
-            <div class="form-group">
-                <label for="first_name">First Name</label>
-                <input type="text" id="first_name" name="first_name" required>
-            </div>
-            
-            <div class="form-group">
-                <label for="last_name">Last Name</label>
-                <input type="text" id="last_name" name="last_name" required>
-            </div>
-        </div>
-        
-        <div class="form-row">
-            <div class="form-group">
-                <label for="phone">Phone Number</label>
-                <input type="tel" id="phone" name="phone" required>
-            </div>
-            
-            <div class="form-group">
-                <label for="emergency_phone">Emergency Phone</label>
-                <input type="tel" id="emergency_phone" name="emergency_phone">
-            </div>
-        </div>
-        
-        <div class="form-group">
-            <label for="father_name">Father's Name</label>
-            <input type="text" id="father_name" name="father_name">
-        </div>
-        
-        <div class="form-row">
-            <div class="form-group">
-                <label for="birth_date">Birth Date</label>
-                <input type="date" id="birth_date" name="birth_date">
-            </div>
-            
-            <div class="form-group">
-                <label for="start_date">Program Start Date</label>
-                <input type="date" id="start_date" name="start_date" value="{{ default_start }}">
-            </div>
-        </div>
-        
-        <div class="form-group">
-            <label for="days">Training Days</label>
-            <div class="days-options">
-                <button type="button" class="day-option" data-days="30">30 Days</button>
-                <button type="button" class="day-option" data-days="60">60 Days</button>
-                <button type="button" class="day-option" data-days="90">90 Days</button>
-                <button type="button" class="day-option" data-days="180">180 Days</button>
-            </div>
-            <input type="number" id="days" name="days" min="1" required>
-        </div>
-        
-        <button type="submit" class="btn-submit">Register Athlete</button>
-    </form>
-</section>
+{% block page_title %}Register New Athlete{% endblock %}
 
-<script>
-    document.querySelectorAll('.day-option').forEach(button => {
-        button.addEventListener('click', function() {
-            document.getElementById('days').value = this.getAttribute('data-days');
-        });
-    });
-    
-    // Set minimum date for start date to today
-    document.getElementById('start_date').min = new Date().toISOString().split('T')[0];
-</script>
+{% block content %}
+<head>
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/register.css') }}">
+</head>
+<div class="card">
+    <div class="card-header">
+        <h2 class="card-title">Register New Athlete</h2>
+    </div>
+    <div class="card-body">
+        <form method="POST" action="{{ url_for('register') }}">
+            <div class="form-row">
+                <div class="form-group">
+                    <label for="first_name" class="form-label">First Name</label>
+                    <input type="text" id="first_name" name="first_name" class="form-control" required>
+                </div>
+                
+                <div class="form-group">
+                    <label for="last_name" class="form-label">Last Name</label>
+                    <input type="text" id="last_name" name="last_name" class="form-control" required>
+                </div>
+            </div>
+            
+            <div class="form-row">
+                <div class="form-group">
+                    <label for="phone" class="form-label">Phone Number</label>
+                    <input type="tel" id="phone" name="phone" class="form-control" required>
+                </div>
+                
+                <div class="form-group">
+                    <label for="emergency_phone" class="form-label">Emergency Phone</label>
+                    <input type="tel" id="emergency_phone" name="emergency_phone" class="form-control">
+                </div>
+            </div>
+            
+            <div class="form-group">
+                <label for="father_name" class="form-label">Father's Name</label>
+                <input type="text" id="father_name" name="father_name" class="form-control">
+            </div>
+            
+            <div class="form-row">
+                <div class="form-group">
+                    <label for="birth_date" class="form-label">Birth Date</label>
+                    <input type="date" id="birth_date" name="birth_date" class="form-control">
+                </div>
+                
+                <div class="form-group">
+                    <label for="start_date" class="form-label">Program Start Date</label>
+                    <input type="date" id="start_date" name="start_date" class="form-control" value="{{ default_start }}">
+                </div>
+            </div>
+            
+            <div class="form-group">
+                <label for="days" class="form-label">Training Period</label>
+                <div class="days-options">
+                    <button type="button" class="day-option btn btn-secondary" data-days="30">30 Days</button>
+                    <button type="button" class="day-option btn btn-secondary" data-days="60">60 Days</button>
+                    <button type="button" class="day-option btn btn-secondary" data-days="90">90 Days</button>
+                    <button type="button" class="day-option btn btn-secondary" data-days="180">180 Days</button>
+                </div>
+                <input type="number" id="days" name="days" min="1" class="form-control" required>
+            </div>
+            
+            <div class="form-group" style="margin-top: 1.5rem;">
+                <button type="submit" class="btn btn-primary btn-lg">
+                    <i class="fas fa-user-plus"></i> Register Athlete
+                </button>
+            </div>
+        </form>
+    </div>
+</div>
 {% endblock %}
