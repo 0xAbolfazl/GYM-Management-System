@@ -63,20 +63,13 @@
         <main class="main-content">
             <header class="main-header">
                 <div class="header-left">
-                    <button class="sidebar-toggle">
-                        <i class="fas fa-bars"></i>
+                    <button class="sidebar-toggle" id="sidebarToggle">
+                        <span class="hamburger"></span>
                     </button>
                     <h1>{% block page_title %}{% endblock %}</h1>
                 </div>
                 <div class="header-right">
-                    <div class="notifications">
-                        <i class="fas fa-bell"></i>
-                        <span class="badge">3</span>
-                    </div>
-                    <div class="user-menu">
-                        <span>Admin</span>
-                        <i class="fas fa-chevron-down"></i>
-                    </div>
+                    <!-- Optional: Add any header right content here -->
                 </div>
             </header>
 
@@ -101,16 +94,55 @@
             </div>
 
             <footer class="main-footer">
-                <p>&copy; 2023 GymPro Management System. All rights reserved.</p>
-                <div class="footer-links">
-                    <a href="#">Privacy Policy</a>
-                    <a href="#">Terms of Service</a>
-                    <a href="#">Contact Us</a>
-                </div>
+                <p>&copy; 2025 GymPro Management System. All rights reserved.</p>
             </footer>
         </main>
     </div>
 
-    <script src="{{ url_for('static', filename='js/script.js') }}"></script>
+    <script>
+        // Toggle sidebar functionality
+        document.getElementById('sidebarToggle').addEventListener('click', function() {
+            const sidebar = document.querySelector('.sidebar');
+            const toggleBtn = this;
+            
+            sidebar.classList.toggle('active');
+            toggleBtn.classList.toggle('active');
+            
+            // Add overlay when sidebar is active
+            if (sidebar.classList.contains('active')) {
+                const overlay = document.createElement('div');
+                overlay.className = 'sidebar-overlay';
+                overlay.style.position = 'fixed';
+                overlay.style.top = '0';
+                overlay.style.left = '0';
+                overlay.style.right = '0';
+                overlay.style.bottom = '0';
+                overlay.style.backgroundColor = 'rgba(0,0,0,0.5)';
+                overlay.style.zIndex = '99';
+                overlay.style.display = 'none';
+                document.body.appendChild(overlay);
+                
+                setTimeout(() => {
+                    overlay.style.display = 'block';
+                }, 10);
+                
+                overlay.addEventListener('click', function() {
+                    sidebar.classList.remove('active');
+                    toggleBtn.classList.remove('active');
+                    overlay.remove();
+                });
+            } else {
+                const overlay = document.querySelector('.sidebar-overlay');
+                if (overlay) overlay.remove();
+            }
+        });
+
+        // Close flash messages
+        document.querySelectorAll('.flash-close').forEach(btn => {
+            btn.addEventListener('click', function() {
+                this.parentElement.remove();
+            });
+        });
+    </script>
 </body>
 </html>

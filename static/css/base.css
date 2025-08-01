@@ -324,8 +324,7 @@ a {
   to { transform: translateX(0); opacity: 1; }
 }
 
-/* ========== رسپانسیو ========== */
-@media (max-width: 992px) {
+/* @media (max-width: 992px) {
   .sidebar {
     position: fixed;
     left: -280px;
@@ -340,9 +339,9 @@ a {
   .sidebar-toggle {
     display: block;
   }
-}
+} */
 
-@media (max-width: 576px) {
+/* @media (max-width: 576px) {
   .header-right {
     gap: var(--spacing-md);
   }
@@ -352,4 +351,97 @@ a {
     gap: var(--spacing-sm);
     text-align: center;
   }
+} */
+
+/* ========== Hamburger Menu Styles ========== */
+.sidebar-toggle {
+    display: none;
+    background: none;
+    border: none;
+    font-size: 1.5rem;
+    color: var(--dark-color);
+    cursor: pointer;
+    transition: transform 0.3s ease;
+    padding: var(--spacing-sm);
+    position: relative;
+    width: 40px;
+    height: 40px;
+}
+
+.sidebar-toggle .hamburger {
+    display: block;
+    width: 24px;
+    height: 2px;
+    background: var(--dark-color);
+    position: relative;
+    transition: all 0.3s ease;
+}
+
+.sidebar-toggle .hamburger::before,
+.sidebar-toggle .hamburger::after {
+    content: '';
+    position: absolute;
+    left: 0;
+    width: 24px;
+    height: 2px;
+    background: var(--dark-color);
+    transition: all 0.3s ease;
+}
+
+.sidebar-toggle .hamburger::before {
+    top: -8px;
+}
+
+.sidebar-toggle .hamburger::after {
+    top: 8px;
+}
+
+.sidebar-toggle.active .hamburger {
+    background: transparent;
+}
+
+.sidebar-toggle.active .hamburger::before {
+    top: 0;
+    transform: rotate(45deg);
+}
+
+.sidebar-toggle.active .hamburger::after {
+    top: 0;
+    transform: rotate(-45deg);
+}
+
+/* ========== Responsive Adjustments ========== */
+@media (max-width: 992px) {
+    .sidebar {
+        position: fixed;
+        left: -280px;
+        top: 0;
+        bottom: 0;
+        transition: left 0.3s ease;
+    }
+    
+    .sidebar.active {
+        left: 0;
+    }
+    
+    .sidebar-toggle {
+        display: block;
+    }
+    
+    .main-content {
+        margin-left: 0;
+    }
+}
+
+@media (max-width: 576px) {
+    .sidebar {
+        width: 250px;
+    }
+    
+    .flash-messages {
+        max-width: 90%;
+        left: 50%;
+        transform: translateX(-50%);
+        right: auto;
+    }
 }
