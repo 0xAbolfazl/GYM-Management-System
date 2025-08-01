@@ -2,11 +2,13 @@
 
 {% block content %}
 <head>
-        <link rel="stylesheet" href="{{ url_for('static', filename='css/edit_athlete.css') }}">
+    <!-- Link to edit athlete specific CSS -->
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/edit_athlete.css') }}">
 </head>
 <section class="registration-form">
     <h2>Edit Athlete: {{ athlete.first_name }} {{ athlete.last_name }}</h2>
     <form method="POST" action="{{ url_for('edit_athlete', athlete_id=athlete.id) }}">
+        <!-- First and Last Name Row -->
         <div class="form-row">
             <div class="form-group">
                 <label for="first_name">First Name</label>
@@ -19,6 +21,7 @@
             </div>
         </div>
         
+        <!-- Phone Numbers Row -->
         <div class="form-row">
             <div class="form-group">
                 <label for="phone">Phone Number</label>
@@ -31,11 +34,13 @@
             </div>
         </div>
         
+        <!-- Father's Name -->
         <div class="form-group">
             <label for="father_name">Father's Name</label>
             <input type="text" id="father_name" name="father_name" value="{{ athlete.father_name or '' }}">
         </div>
         
+        <!-- Dates Row -->
         <div class="form-row">
             <div class="form-group">
                 <label for="birth_date">Birth Date</label>
@@ -48,7 +53,12 @@
             </div>
         </div>
         
-        <button type="submit" class="btn-submit">Update Athlete</button>
+        <!-- Form Action Buttons -->
+        <div class="form-actions">
+            <button type="submit" class="btn-submit">Update Athlete</button>
+            <!-- Cancel button that redirects back to athlete view page -->
+            <a href="{{ url_for('view_athlete', athlete_id=athlete.id) }}" class="btn-cancel">Cancel</a>
+        </div>
     </form>
 </section>
 {% endblock %}

@@ -10,6 +10,7 @@
     </div>
     <div class="card-body">
         <form method="POST" action="{{ url_for('register') }}">
+            <!-- Personal Information Section -->
             <div class="form-row">
                 <div class="form-group">
                     <label for="first_name" class="form-label">First Name</label>
@@ -22,6 +23,7 @@
                 </div>
             </div>
             
+            <!-- Contact Information Section -->
             <div class="form-row">
                 <div class="form-group">
                     <label for="phone" class="form-label">Phone Number</label>
@@ -34,11 +36,13 @@
                 </div>
             </div>
             
+            <!-- Family Information -->
             <div class="form-group">
                 <label for="father_name" class="form-label">Father's Name</label>
                 <input type="text" id="father_name" name="father_name" class="form-control">
             </div>
             
+            <!-- Date Information -->
             <div class="form-row">
                 <div class="form-group">
                     <label for="birth_date" class="form-label">Birth Date</label>
@@ -51,17 +55,28 @@
                 </div>
             </div>
             
+            <!-- Training Period Section -->
             <div class="form-group">
-                <label for="days" class="form-label">Training Period</label>
+                <label for="days" class="form-label">Training Period (Days)</label>
+                
+                <!-- Quick Selection Buttons -->
                 <div class="days-options">
-                    <button type="button" class="day-option btn btn-secondary" data-days="30">30 Days</button>
-                    <button type="button" class="day-option btn btn-secondary" data-days="60">60 Days</button>
-                    <button type="button" class="day-option btn btn-secondary" data-days="90">90 Days</button>
-                    <button type="button" class="day-option btn btn-secondary" data-days="180">180 Days</button>
+                    <button type="button" class="day-option btn btn-outline-primary" data-days="30">30 Days</button>
+                    <button type="button" class="day-option btn btn-outline-primary" data-days="60">60 Days</button>
+                    <button type="button" class="day-option btn btn-outline-primary" data-days="90">90 Days</button>
+                    <button type="button" class="day-option btn btn-outline-primary" data-days="180">180 Days</button>
                 </div>
+                
+                <!-- Manual Input Field -->
                 <input type="number" id="days" name="days" min="1" class="form-control" required>
+                
+                <!-- End Date Display (readonly) -->
+                <div class="end-date-display" style="margin-top: 10px;">
+                    <small class="text-muted">End Date: <span id="end_date_display">-</span></small>
+                </div>
             </div>
             
+            <!-- Submit Button -->
             <div class="form-group" style="margin-top: 1.5rem;">
                 <button type="submit" class="btn btn-primary btn-lg">
                     <i class="fas fa-user-plus"></i> Register Athlete
@@ -70,4 +85,59 @@
         </form>
     </div>
 </div>
+
+<script>
+    // Wait for DOM to be fully loaded
+    document.addEventListener('DOMContentLoaded', function() {
+        // Get DOM elements
+        const daysInput = document.getElementById('days');
+        const dayOptions = document.querySelectorAll('.day-option');
+        const startDateInput = document.getElementById('start_date');
+        const endDateDisplay = document.getElementById('end_date_display');
+        
+        // Function to calculate and display end date
+        function updateEndDateDisplay() {
+            const days = parseInt(daysInput.value) || 0;
+            const startDate = startDateInput.value;
+            
+            if (days > 0 && startDate) {
+                const date = new Date(startDate);
+                date.setDate(date.getDate() + days);
+                endDateDisplay.textContent = date.toLocaleDateString();
+            } else {
+                endDateDisplay.textContent = '-';
+            }
+        }
+        
+        // Add click event to day option buttons
+        dayOptions.forEach(button => {
+            button.addEventListener('click', function() {
+                const days = this.getAttribute('data-days');
+                daysInput.value = days;
+                
+                // Update active state
+                dayOptions.forEach(btn => btn.classList.remove('active'));
+                this.classList.add('active');
+                
+                // Update end date display
+                updateEndDateDisplay();
+            });
+        });
+        
+        // Add input event to days input field
+        daysInput.addEventListener('input', function() {
+            // Remove active state from all buttons when manually editing
+            dayOptions.forEach(btn => btn.classList.remove('active'));
+            
+            // Update end date display
+            updateEndDateDisplay();
+        });
+        
+        // Add change event to start date input
+        startDateInput.addEventListener('change', updateEndDateDisplay);
+        
+        // Initialize end date display
+        updateEndDateDisplay();
+    });
+</script>
 {% endblock %}
