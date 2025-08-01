@@ -27,6 +27,7 @@
                 <p><strong>Phone:</strong> {{ athlete.phone }}</p>
                 <p><strong>Registered:</strong> {{ athlete.registration_date.split(' ')[0] }}</p>
                 <p><strong>End Date:</strong> {{ (datetime.strptime(athlete.start_date, '%Y-%m-%d') + timedelta(days=athlete.original_days)).strftime('%Y-%m-%d') }}</p>
+                <p><strong>Period:</strong> {{athlete.original_days }}</p>
             </div>
             
             <div class="athlete-actions">

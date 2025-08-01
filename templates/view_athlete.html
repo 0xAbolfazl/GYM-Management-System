@@ -44,6 +44,10 @@
                 <span class="detail-value">{{ athlete.end_date }}</span>
             </div>
             <div class="detail-row">
+                <span class="detail-label">Period:</span>
+                <span class="detail-value">{{ athlete.original_days }}</span>
+            </div>
+            <div class="detail-row">
                 <span class="detail-label">Days Remaining:</span>
                 <span class="detail-value {% if athlete.days_remaining < 7 %}expiring{% endif %}">
                     {{ athlete.days_remaining }} days

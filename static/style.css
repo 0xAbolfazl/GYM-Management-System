@@ -235,7 +235,146 @@ footer {
     color: var(--primary-color);
 }
 
-/* Add these new styles to your existing style.css */
+/* اضافه کردن این استایل‌ها به فایل style.css شما */
+
+/* استایل‌های بخش جزئیات ورزشکار */
+.athlete-detail {
+    max-width: 800px;
+    margin: 0 auto;
+    background: white;
+    padding: 2rem;
+    border-radius: 8px;
+    box-shadow: 0 2px 20px rgba(0, 0, 0, 0.1);
+}
+
+.athlete-detail h2 {
+    color: var(--primary-color);
+    text-align: center;
+    margin-bottom: 1.5rem;
+    font-size: 1.8rem;
+}
+
+.athlete-detail-card {
+    border: 1px solid var(--border-color);
+    border-radius: 8px;
+    overflow: hidden;
+}
+
+.detail-header {
+    background-color: var(--primary-color);
+    color: white;
+    padding: 1.5rem;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+
+.detail-header h3 {
+    margin: 0;
+    font-size: 1.5rem;
+    font-weight: 600;
+}
+
+.detail-header .id-badge {
+    background-color: rgba(255, 255, 255, 0.2);
+    padding: 0.3rem 0.8rem;
+    border-radius: 20px;
+    font-size: 0.9rem;
+}
+
+.detail-info {
+    padding: 1.5rem;
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+    gap: 1.5rem;
+}
+
+.detail-row {
+    margin-bottom: 1rem;
+}
+
+.detail-label {
+    display: block;
+    font-weight: 500;
+    color: var(--light-text);
+    margin-bottom: 0.3rem;
+    font-size: 0.9rem;
+}
+
+.detail-value {
+    display: block;
+    font-size: 1rem;
+    padding: 0.5rem 0;
+    border-bottom: 1px solid var(--border-color);
+}
+
+.detail-value.expiring {
+    color: var(--danger-color);
+    font-weight: 500;
+}
+
+.detail-actions {
+    display: flex;
+    justify-content: space-between;
+    padding: 1.5rem;
+    border-top: 1px solid var(--border-color);
+    background-color: var(--secondary-color);
+    gap: 1rem; 
+}
+
+.action-btn {
+    padding: 0.75rem 1.5rem;
+    border-radius: 6px;
+    font-size: 1rem;
+    text-decoration: none;
+    display: inline-flex;
+    align-items: center;
+    gap: 0.5rem;
+    transition: all 0.2s;
+    font-weight: 500;
+}
+
+.back-btn {
+    background-color: #6c757d;
+    color: white;
+}
+
+.edit-btn {
+    background-color: var(--primary-color);
+    color: white;
+}
+
+.action-btn:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+    opacity: 0.9;
+}
+
+@media (max-width: 768px) {
+    .athlete-detail {
+        padding: 1rem;
+    }
+    
+    .detail-header {
+        flex-direction: column;
+        align-items: flex-start;
+        gap: 0.5rem;
+    }
+    
+    .detail-info {
+        grid-template-columns: 1fr;
+    }
+    
+    .detail-actions {
+        flex-direction: column;
+        gap: 0.75rem;
+    }
+    
+    .action-btn {
+        width: 100%;
+        justify-content: center;
+    }
+}
 
 /* Dashboard Styles */
 .dashboard {
@@ -613,8 +752,10 @@ input[type="date"]:focus {
 
 .athlete-actions {
     display: flex;
+    justify-content: space-between;
     gap: 0.5rem;
     flex-wrap: wrap;
+    width: 100%;
 }
 
 .action-btn {
@@ -626,6 +767,10 @@ input[type="date"]:focus {
     align-items: center;
     gap: 0.3rem;
     transition: all 0.2s;
+    flex: 1;
+    min-width: fit-content;
+    text-align: center;
+    justify-content: center;
 }
 
 .action-btn i {
@@ -660,7 +805,13 @@ input[type="date"]:focus {
 }
 
 .delete-form {
-    margin: 0;
+    flex: 1;
+    min-width: fit-content;
+    display: flex;
+}
+
+.delete-form button {
+    width: 100%;
 }
 
 /* Font Awesome icons */
