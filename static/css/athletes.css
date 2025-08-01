@@ -132,94 +132,88 @@
 
 /* ===== ACTION BUTTONS ===== */
 .athlete-actions {
-  display: flex;
-  flex-wrap: wrap;
-  gap: var(--spacing-sm);
-  padding: var(--spacing-md);
-  border-top: 1px solid var(--border-color);
-  background-color: #f8fafc;
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: var(--spacing-sm);
+    padding: var(--spacing-md);
+    border-top: 1px solid var(--border-color);
+    background-color: #f8fafc;
 }
 
 .action-btn {
-  display: inline-flex;
-  align-items: center;
-  gap: var(--spacing-xs);
-  padding: var(--spacing-xs) var(--spacing-sm);
-  border-radius: var(--radius-sm);
-  font-size: 0.85rem;
-  font-weight: 500;
-  transition: all 0.2s ease;
-}
-
-.view-btn {
-  background-color: var(--info-color);
-  color: white;
-}
-
-.view-btn:hover {
-  background-color: #3b82f6;
-}
-
-.edit-btn {
-  background-color: var(--warning-color);
-  color: white;
-}
-
-.edit-btn:hover {
-  background-color: #f59e0b;
-}
-
-.renew-btn {
-  background-color: var(--success-color);
-  color: white;
-}
-
-.renew-btn:hover {
-  background-color: #10b981;
-}
-
-.delete-btn {
-  background-color: var(--danger-color);
-  color: white;
-  border: none;
-  cursor: pointer;
-}
-
-.delete-btn:hover {
-  background-color: #ef4444;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 6px;
+    padding: 8px 12px;
+    border-radius: var(--radius-sm);
+    font-size: 0.85rem;
+    font-weight: 500;
+    transition: all 0.2s ease;
+    text-align: center;
+    min-width: 0;
+    width: 100%;
+    border: none;
+    cursor: pointer;
+    text-decoration: none;
+    height: 36px; 
+    box-sizing: border-box;
 }
 
 .delete-form {
-  margin: 0;
+    display: none;
 }
 
-/* ========== RESPONSIVE ADJUSTMENTS ========== */
+/* Responsive adjustments */
 @media (max-width: 768px) {
-  .athletes-grid {
-    grid-template-columns: repeat(auto-fill, minmax(250px, 1fr));
-  }
-  
-  .search-filter form {
-    flex-direction: column;
-  }
-  
-  .search-filter button {
-    padding: var(--spacing-sm);
-  }
+    .athlete-actions {
+        grid-template-columns: repeat(2, 1fr);
+    }
+    
+    .action-btn {
+        grid-column: auto;
+    }
 }
 
 @media (max-width: 480px) {
-  .athletes-grid {
-    grid-template-columns: 1fr;
-  }
-  
-  .athlete-actions {
-    flex-direction: column;
-  }
-  
-  .action-btn {
-    width: 100%;
-    justify-content: center;
-    padding: var(--spacing-sm);
-  }
+    .athlete-actions {
+        grid-template-columns: 1fr;
+    }
+}
+
+/* Button colors (keep existing) */
+.view-btn {
+    background-color: var(--info-color);
+    color: white;
+}
+
+.view-btn:hover {
+    background-color: #3b82f6;
+}
+
+.edit-btn {
+    background-color: var(--warning-color);
+    color: white;
+}
+
+.edit-btn:hover {
+    background-color: #f59e0b;
+}
+
+.renew-btn {
+    background-color: var(--success-color);
+    color: white;
+}
+
+.renew-btn:hover {
+    background-color: #10b981;
+}
+
+.delete-btn {
+    background-color: var(--danger-color);
+    color: white;
+}
+
+.delete-btn:hover {
+    background-color: #ef4444;
 }
