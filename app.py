@@ -21,7 +21,33 @@ init_db()
 
 @app.route('/')
 def home():
-    return redirect(url_for('register'))
+    conn = sqlite3.connect('database.db')
+    c = conn.cursor()
+    
+    # Get total athletes count
+    c.execute("SELECT COUNT(*) FROM athletes")
+    total_athletes = c.fetchone()[0]
+    
+    # Get active athletes (with days remaining > 0)
+    c.execute("SELECT COUNT(*) FROM athletes WHERE days_remaining > 0")
+    active_athletes = c.fetchone()[0]
+    
+    # Get expiring soon athletes (less than 7 days remaining)
+    c.execute("SELECT COUNT(*) FROM athletes WHERE days_remaining > 0 AND days_remaining < 7")
+    expiring_soon = c.fetchone()[0]
+    
+    # Get recent registrations (last 7 days)
+    seven_days_ago = (datetime.now() - timedelta(days=7)).strftime('%Y-%m-%d %H:%M:%S')
+    c.execute("SELECT COUNT(*) FROM athletes WHERE registration_date > ?", (seven_days_ago,))
+    recent_registrations = c.fetchone()[0]
+    
+    conn.close()
+    
+    return render_template('home.html', 
+                         total_athletes=total_athletes,
+                         active_athletes=active_athletes,
+                         expiring_soon=expiring_soon,
+                         recent_registrations=recent_registrations)
 
 @app.route('/register', methods=['GET', 'POST'])
 def register():

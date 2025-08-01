@@ -1,0 +1,47 @@
+{% extends "base.html" %}
+
+{% block content %}
+<section class="dashboard">
+    <h2>Gym Dashboard</h2>
+    
+    <div class="stats-grid">
+        <div class="stat-card">
+            <div class="stat-value">{{ total_athletes }}</div>
+            <div class="stat-label">Total Athletes</div>
+            <div class="stat-icon">👥</div>
+        </div>
+        
+        <div class="stat-card">
+            <div class="stat-value">{{ active_athletes }}</div>
+            <div class="stat-label">Active Members</div>
+            <div class="stat-icon">💪</div>
+        </div>
+        
+        <div class="stat-card">
+            <div class="stat-value">{{ expiring_soon }}</div>
+            <div class="stat-label">Expiring Soon</div>
+            <div class="stat-icon">⚠️</div>
+        </div>
+        
+        <div class="stat-card">
+            <div class="stat-value">{{ recent_registrations }}</div>
+            <div class="stat-label">New This Week</div>
+            <div class="stat-icon">🆕</div>
+        </div>
+    </div>
+    
+    <div class="quick-actions">
+        <h3>Quick Actions</h3>
+        <div class="action-buttons">
+            <a href="{{ url_for('register') }}" class="action-btn">
+                <span>➕</span>
+                Register New Athlete
+            </a>
+            <a href="{{ url_for('athletes') }}" class="action-btn">
+                <span>📋</span>
+                View All Athletes
+            </a>
+        </div>
+    </div>
+</section>
+{% endblock %}
