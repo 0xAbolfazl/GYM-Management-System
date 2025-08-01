@@ -4,35 +4,145 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>GymPro - Admin Login</title>
-        <link rel="stylesheet" href="{{ url_for('static', filename='css/login.css') }}">
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/login.css') }}">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        .flash-messages {
+            position: fixed;
+            top: 20px;
+            right: 20px;
+            z-index: 1000;
+            max-width: 400px;
+            width: 90%;
+        }
+
+        .flash-message {
+            padding: 15px 20px;
+            margin-bottom: 15px;
+            border-radius: 8px;
+            color: white;
+            display: flex;
+            align-items: center;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.2);
+            animation: slideIn 0.4s ease-out forwards;
+            position: relative;
+            overflow: hidden;
+            font-family: 'Poppins', sans-serif;
+        }
+
+        .flash-message::after {
+            content: '';
+            position: absolute;
+            bottom: 0;
+            left: 0;
+            width: 100%;
+            height: 4px;
+            background-color: rgba(255,255,255,0.3);
+        }
+
+        .flash-success {
+            background-color: #4CAF50;
+            border-left: 5px solid #388E3C;
+        }
+
+        .flash-danger {
+            background-color: #F44336;
+            border-left: 5px solid #D32F2F;
+        }
+
+        .flash-warning {
+            background-color: #FF9800;
+            border-left: 5px solid #F57C00;
+        }
+
+        .flash-info {
+            background-color: #2196F3;
+            border-left: 5px solid #1976D2;
+        }
+
+        .flash-close {
+            margin-left: auto;
+            background: none;
+            border: none;
+            color: white;
+            cursor: pointer;
+            opacity: 0.8;
+            transition: opacity 0.2s;
+            padding: 0 0 0 15px;
+            font-size: 1.1em;
+        }
+
+        .flash-close:hover {
+            opacity: 1;
+        }
+
+        .flash-message i {
+            margin-right: 12px;
+            font-size: 1.3em;
+        }
+
+        @keyframes slideIn {
+            from {
+                transform: translateY(-20px);
+                opacity: 0;
+            }
+            to {
+                transform: translateY(0);
+                opacity: 1;
+            }
+        }
+
+        @keyframes slideOut {
+            to {
+                transform: translateX(100%);
+                opacity: 0;
+                max-height: 0;
+                padding: 0;
+                margin: 0;
+            }
+        }
+    </style>
 </head>
 <body>
     <div class="login-container">
+        <!-- Flash Messages Container -->
+        <div class="flash-messages">
+            {% with messages = get_flashed_messages(with_categories=true) %}
+                {% if messages %}
+                    {% for category, message in messages %}
+                        <div class="flash-message flash-{{ category }}">
+                            <i class="fas fa-{{ 'check-circle' if category == 'success' else 'exclamation-circle' }}"></i>
+                            <span>{{ message }}</span>
+                            <button class="flash-close" onclick="this.parentElement.remove()">
+                                <i class="fas fa-times"></i>
+                            </button>
+                        </div>
+                    {% endfor %}
+                {% endif %}
+            {% endwith %}
+        </div>
+
+        <!-- Login Card -->
         <div class="login-card">
-            <!-- Header Section -->
             <div class="login-header">
                 <i class="fas fa-dumbbell"></i>
                 <h1>GymPro</h1>
                 <p>Admin Dashboard Login</p>
             </div>
 
-            <!-- Login Form -->
             <form class="login-form" action="/login" method="POST">
-                <!-- Username Field -->
                 <div class="form-group">
                     <label for="username">Username</label>
                     <input type="text" id="username" name="username" required>
                     <i class="fas fa-user"></i>
                 </div>
 
-                <!-- Password Field -->
                 <div class="form-group">
                     <label for="password">Password</label>
                     <input type="password" id="password" name="password" required>
                     <i class="fas fa-lock"></i>
                 </div>
 
-                <!-- Submit Button -->
                 <button type="submit" class="login-btn">
                     <i class="fas fa-sign-in-alt"></i> Login
                 </button>
@@ -40,7 +150,46 @@
         </div>
     </div>
 
-    <!-- Font Awesome for icons -->
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <script>
+        // auto close after 5 sec
+        document.querySelectorAll('.flash-message').forEach(message => {
+            setTimeout(() => {
+                message.style.animation = 'slideOut 0.4s ease forwards';
+                setTimeout(() => message.remove(), 400);
+            }, 5000);
+        });
+
+        // not send if fileds were empty
+        document.querySelector('.login-form').addEventListener('submit', function(e) {
+            const username = document.getElementById('username').value.trim();
+            const password = document.getElementById('password').value.trim();
+            
+            if (!username || !password) {
+                e.preventDefault();
+                const flashContainer = document.querySelector('.flash-messages');
+                
+                // add message if not exist
+                if (!document.querySelector('.flash-danger')) {
+                    const errorMsg = document.createElement('div');
+                    errorMsg.className = 'flash-message flash-danger';
+                    errorMsg.innerHTML = `
+                        <i class="fas fa-exclamation-circle"></i>
+                        <span>Please enter both username and password</span>
+                        <button class="flash-close" onclick="this.parentElement.remove()">
+                            <i class="fas fa-times"></i>
+                        </button>
+                    `;
+                    
+                    flashContainer.appendChild(errorMsg);
+                    
+                    // auto close  
+                    setTimeout(() => {
+                        errorMsg.style.animation = 'slideOut 0.4s ease forwards';
+                        setTimeout(() => errorMsg.remove(), 400);
+                    }, 5000);
+                }
+            }
+        });
+    </script>
 </body>
 </html>

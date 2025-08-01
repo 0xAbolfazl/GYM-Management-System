@@ -1,19 +1,23 @@
-// فعال/غیرفعال کردن سایدبار در حالت موبایل
+// deactive sidebar in phone
 document.querySelector('.sidebar-toggle').addEventListener('click', function() {
     document.querySelector('.sidebar').classList.toggle('active');
 });
 
-// بستن پیام‌های اطلاع‌رسانی
-document.querySelectorAll('.flash-close').forEach(button => {
-    button.addEventListener('click', function() {
-        this.parentElement.style.animation = 'slideOut 0.3s ease-out forwards';
-        setTimeout(() => {
-            this.parentElement.remove();
-        }, 300);
+// Close notification messages
+document.querySelectorAll('.flash-messages > div').forEach(flash => {
+    setTimeout(() => {
+        flash.style.animation = 'slideOut 0.5s ease forwards';
+        setTimeout(() => flash.remove(), 500);
+    }, 5000);
+    
+    // Manual closing
+    flash.querySelector('.flash-close')?.addEventListener('click', () => {
+        flash.style.animation = 'slideOut 0.5s ease forwards';
+        setTimeout(() => flash.remove(), 500);
     });
 });
 
-// محاسبه تاریخ پایان جدید برای فرم تمدید
+// Calculating a new end date for the renewal form
 if (document.getElementById('days') && document.getElementById('new_end_date')) {
     const daysInput = document.getElementById('days');
     const endDateDisplay = document.getElementById('new_end_date');
@@ -36,30 +40,30 @@ if (document.getElementById('days') && document.getElementById('new_end_date')) 
         calculateNewEndDate(this.value);
     });
     
-    // مقداردهی اولیه
+    
     calculateNewEndDate(daysInput.value);
 }
 
-// انتخاب گزینه‌های روز
+
 document.querySelectorAll('.day-option').forEach(button => {
     button.addEventListener('click', function() {
         const days = this.getAttribute('data-days');
         document.getElementById('days').value = days;
         
-        // به‌روزرسانی حالت فعال
+
         document.querySelectorAll('.day-option').forEach(btn => {
             btn.classList.remove('active');
         });
         this.classList.add('active');
         
-        // محاسبه تاریخ جدید
+        // Calculate the new date 
         if (document.getElementById('new_end_date')) {
             calculateNewEndDate(days);
         }
     });
 });
 
-// تایید قبل از حذف
+// Confirm before deleting
 document.querySelectorAll('.delete-btn').forEach(button => {
     button.addEventListener('click', function(e) {
         if (!confirm('Are you sure you want to delete this athlete?')) {
@@ -68,12 +72,23 @@ document.querySelectorAll('.delete-btn').forEach(button => {
     });
 });
 
-// انیمیشن خروج برای پیام‌ها
+// Exit animation for messages
 const style = document.createElement('style');
 style.textContent = `
     @keyframes slideOut {
-        from { transform: translateX(0); opacity: 1; }
-        to { transform: translateX(100%); opacity: 0; }
+        to {
+            transform: translateX(100%);
+            opacity: 0;
+            max-height: 0;
+            padding: 0;
+            margin: 0;
+            overflow: hidden;
+        }
+    }
+    
+    .flash-messages > div {
+        transition: all 0.5s ease;
+        overflow: hidden;
     }
 `;
 document.head.appendChild(style);

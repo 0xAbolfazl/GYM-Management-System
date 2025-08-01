@@ -1,8 +1,9 @@
-from flask import Flask, render_template, request, redirect, url_for, flash
+from flask import Flask, render_template, request, redirect, url_for, flash, session
 import sqlite3
 from datetime import datetime, timedelta
 import random
 from functools import wraps
+import hashlib
 
 app = Flask(__name__)
 app.secret_key = 'gymsecret'  # Change this to a secure secret key
@@ -57,11 +58,51 @@ def init_db():
     conn.commit()
     conn.close()
 
+def login_required(f):
+    @wraps(f)
+    def decorated_function(*args, **kwargs):
+        if 'logged_in' not in session:
+            flash('Please log in to access this page', 'warning')
+            return redirect(url_for('login', next=request.url))
+        return f(*args, **kwargs)
+    return decorated_function
+
 # Initialize the database
 init_db()
 
 # Routes
+@app.route('/login', methods=['GET', 'POST'])
+def login():
+    if request.method == 'POST':
+        username = request.form.get('username')
+        password = request.form.get('password')
+        
+        if not username or not password:
+            flash('Please enter both username and password', 'danger')
+            return redirect(url_for('login'))
+        
+        conn = get_db_connection()
+        user = conn.execute('SELECT * FROM admins WHERE username = ?', (username,)).fetchone()
+        conn.close()
+        
+        if user:
+            user_dict = dict(user)
+            if user_dict['password'] == hashlib.sha256(password.encode()).hexdigest():
+                session['logged_in'] = True
+                session['username'] = user_dict['username']
+                session['full_name'] = f"{user_dict['first_name']} {user_dict['last_name']}"
+                
+                log_activity("LOGIN", f"User {username} logged in")
+                flash('Logged in successfully!', 'success')
+                return redirect(url_for('home'))
+        
+        flash('Invalid username or password', 'danger')
+        return redirect(url_for('login'))
+    
+    return render_template('login.html')
+
 @app.route('/')
+@login_required
 def home():
     conn = get_db_connection()
     
@@ -79,6 +120,7 @@ def home():
     return render_template('home.html', **stats)
 
 @app.route('/register', methods=['GET', 'POST'])
+@login_required
 def register():
     if request.method == 'POST':
         athlete_id = generate_unique_id()
@@ -115,6 +157,7 @@ def register():
     return render_template('register.html', default_start=datetime.now().strftime('%Y-%m-%d'))
 
 @app.route('/athletes')
+@login_required
 def athletes():
     search_query = request.args.get('search', '').strip()
     
@@ -159,6 +202,7 @@ def athletes():
                          timedelta=timedelta) 
 
 @app.route('/athlete/<int:athlete_id>')
+@login_required
 def view_athlete(athlete_id):
     conn = get_db_connection()
     athlete = conn.execute('SELECT * FROM athletes WHERE id = ?', (athlete_id,)).fetchone()
@@ -189,6 +233,7 @@ def view_athlete(athlete_id):
     return render_template('view_athlete.html', athlete=athlete_data)
 
 @app.route('/athlete/<int:athlete_id>/edit', methods=['GET', 'POST'])
+@login_required
 def edit_athlete(athlete_id):
     conn = get_db_connection()
     
@@ -228,6 +273,7 @@ def edit_athlete(athlete_id):
     return render_template('edit_athlete.html', athlete=athlete)
 
 @app.route('/athlete/<int:athlete_id>/renew', methods=['GET', 'POST'])
+@login_required
 def renew_athlete(athlete_id):
     conn = get_db_connection()
     
@@ -288,6 +334,7 @@ def renew_athlete(athlete_id):
     return render_template('renew_athlete.html', athlete=athlete_data)
 
 @app.route('/athlete/<int:athlete_id>/delete', methods=['POST'])
+@login_required
 def delete_athlete(athlete_id):
     conn = get_db_connection()
     
@@ -313,6 +360,7 @@ def delete_athlete(athlete_id):
     return redirect(url_for('athletes'))
 
 @app.route('/history')
+@login_required
 def history():
     search_query = request.args.get('search', '')
     action_type = request.args.get('action_type', '')
