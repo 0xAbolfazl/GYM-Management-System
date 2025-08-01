@@ -1,27 +1,36 @@
-from flask import Flask, render_template, request, redirect, url_for
+from flask import Flask, render_template, request, redirect, url_for, flash
 import sqlite3
 from datetime import datetime, timedelta
 import random
 
 app = Flask(__name__)
+app.secret_key = 'gymsecret'  # Needed for flash messages
 
 def generate_unique_id():
     conn = sqlite3.connect('database.db')
     c = conn.cursor()
     
     while True:
-        # Generate a random 4-digit ID between 1000-9999
         athlete_id = random.randint(1000, 9999)
-        
-        # Check if ID already exists
         c.execute("SELECT 1 FROM athletes WHERE id = ?", (athlete_id,))
         if not c.fetchone():
             conn.close()
             return athlete_id
 
+def log_activity(action, details, athlete_id=None):
+    conn = sqlite3.connect('database.db')
+    c = conn.cursor()
+    timestamp = datetime.now().strftime('%Y-%m-%d %H:%M:%S')
+    c.execute("INSERT INTO activity_log (timestamp, action, details, athlete_id) VALUES (?, ?, ?, ?)",
+              (timestamp, action, details, athlete_id))
+    conn.commit()
+    conn.close()
+
 def init_db():
     conn = sqlite3.connect('database.db')
     c = conn.cursor()
+    
+    # Athletes table
     c.execute('''CREATE TABLE IF NOT EXISTS athletes
                  (id INTEGER PRIMARY KEY,
                   first_name TEXT NOT NULL,
@@ -33,10 +42,21 @@ def init_db():
                   registration_date TEXT NOT NULL,
                   start_date TEXT NOT NULL,
                   days_remaining INTEGER NOT NULL)''')
+    
+    # Activity log table
+    c.execute('''CREATE TABLE IF NOT EXISTS activity_log
+                 (id INTEGER PRIMARY KEY AUTOINCREMENT,
+                  timestamp TEXT NOT NULL,
+                  action TEXT NOT NULL,
+                  details TEXT NOT NULL,
+                  athlete_id INTEGER,
+                  FOREIGN KEY(athlete_id) REFERENCES athletes(id))''')
+    
     conn.commit()
     conn.close()
 
 init_db()
+
 
 @app.route('/')
 def home():
@@ -94,6 +114,14 @@ def register():
         conn.commit()
         conn.close()
         
+        # Log the registration activity
+        log_activity(
+            action="REGISTRATION",
+            details=f"Registered new athlete: {first_name} {last_name} (ID: {athlete_id}) for {days} days",
+            athlete_id=athlete_id
+        )
+        
+        flash('Athlete registered successfully!', 'success')
         return redirect(url_for('athletes'))
     
     default_start = datetime.now().strftime('%Y-%m-%d')
@@ -158,6 +186,33 @@ def athletes():
         athletes.append(athlete_dict)
     
     return render_template('athletes.html', athletes=athletes, search_query=search_query)
+
+@app.route('/history')
+def history():
+    conn = sqlite3.connect('database.db')
+    c = conn.cursor()
+    
+    # Get all activities, newest first
+    c.execute('''SELECT activity_log.*, athletes.first_name, athletes.last_name
+                 FROM activity_log
+                 LEFT JOIN athletes ON activity_log.athlete_id = athletes.id
+                 ORDER BY timestamp DESC''')
+    activities = c.fetchall()
+    conn.close()
+    
+    # Format activities for display
+    formatted_activities = []
+    for activity in activities:
+        formatted_activities.append({
+            'id': activity[0],
+            'timestamp': activity[1],
+            'action': activity[2],
+            'details': activity[3],
+            'athlete_id': activity[4],
+            'athlete_name': f"{activity[5]} {activity[6]}" if activity[5] and activity[6] else "N/A"
+        })
+    
+    return render_template('history.html', activities=formatted_activities)
 
 if __name__ == '__main__':
     app.run(debug=True)

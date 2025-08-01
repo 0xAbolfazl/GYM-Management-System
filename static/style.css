@@ -405,6 +405,137 @@ input[type="date"]:focus {
     align-items: center;
 }
 
+/* Add these styles to your existing CSS */
+
+/* History Page Styles */
+.history-section {
+    background: white;
+    padding: 2rem;
+    border-radius: 8px;
+    box-shadow: 0 2px 15px rgba(0, 0, 0, 0.05);
+}
+
+.activity-filters {
+    margin-bottom: 2rem;
+}
+
+.activity-filters form {
+    display: flex;
+    gap: 0.5rem;
+    flex-wrap: wrap;
+}
+
+.activity-filters input,
+.activity-filters select {
+    padding: 0.75rem;
+    border: 1px solid var(--border-color);
+    border-radius: 4px;
+    font-size: 1rem;
+}
+
+.activity-filters input {
+    flex: 1;
+    min-width: 200px;
+}
+
+.activity-filters select {
+    min-width: 150px;
+}
+
+.activity-filters button {
+    padding: 0 1.5rem;
+    background-color: var(--primary-color);
+    color: white;
+    border: none;
+    border-radius: 4px;
+    cursor: pointer;
+}
+
+.activity-list {
+    display: flex;
+    flex-direction: column;
+    gap: 1rem;
+}
+
+.activity-card {
+    border: 1px solid var(--border-color);
+    border-radius: 8px;
+    padding: 1.5rem;
+    background: white;
+}
+
+.activity-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 1rem;
+    padding-bottom: 0.5rem;
+    border-bottom: 1px solid var(--border-color);
+}
+
+.activity-action {
+    padding: 0.25rem 0.75rem;
+    border-radius: 20px;
+    font-size: 0.8rem;
+    font-weight: 500;
+    color: white;
+}
+
+.activity-action.registration {
+    background-color: var(--success-color);
+}
+
+.activity-timestamp {
+    color: var(--light-text);
+    font-size: 0.9rem;
+}
+
+.activity-details p {
+    margin-bottom: 0.5rem;
+}
+
+.activity-athlete {
+    margin-top: 0.5rem;
+    font-size: 0.9rem;
+}
+
+.activity-athlete a {
+    color: var(--primary-color);
+    text-decoration: none;
+}
+
+.activity-athlete a:hover {
+    text-decoration: underline;
+}
+
+.no-activities {
+    text-align: center;
+    padding: 2rem;
+    color: var(--light-text);
+}
+
+/* Flash Messages */
+.flash-messages {
+    position: fixed;
+    top: 1rem;
+    right: 1rem;
+    z-index: 1000;
+    max-width: 400px;
+}
+
+.flash-success {
+    background-color: var(--success-color);
+    color: white;
+    padding: 1rem;
+    border-radius: 4px;
+    margin-bottom: 0.5rem;
+    animation: slideIn 0.3s ease-out;
+}
+
+@keyframes slideIn {
+    from { transform: translateX(100%); }
+    to { transform: translateX(0); }
+}
 
 /* Responsive adjustments */
 @media (max-width: 768px) {

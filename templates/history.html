@@ -1,0 +1,47 @@
+{% extends "base.html" %}
+
+{% block content %}
+<section class="history-section">
+    <h2>Activity History</h2>
+    
+    <div class="activity-filters">
+        <form method="GET" action="{{ url_for('history') }}">
+            <input type="text" name="search" placeholder="Search activities..." value="{{ request.args.get('search', '') }}">
+            <select name="action_type">
+                <option value="">All Actions</option>
+                <option value="REGISTRATION" {% if request.args.get('action_type') == 'REGISTRATION' %}selected{% endif %}>Registrations</option>
+                <!-- Add more action types as you implement them -->
+            </select>
+            <button type="submit">Filter</button>
+        </form>
+    </div>
+    
+    <div class="activity-list">
+        {% for activity in activities %}
+        <div class="activity-card">
+            <div class="activity-header">
+                <span class="activity-action {{ activity.action|lower }}">{{ activity.action }}</span>
+                <span class="activity-timestamp">{{ activity.timestamp }}</span>
+            </div>
+            <div class="activity-details">
+                <p>{{ activity.details }}</p>
+                {% if activity.athlete_id %}
+                <p class="activity-athlete">
+                    Athlete: 
+                    {% if activity.athlete_name != 'N/A' %}
+                    <a href="{{ url_for('athletes') }}?search={{ activity.athlete_id }}">{{ activity.athlete_name }} (ID: {{ activity.athlete_id }})</a>
+                    {% else %}
+                    ID: {{ activity.athlete_id }}
+                    {% endif %}
+                </p>
+                {% endif %}
+            </div>
+        </div>
+        {% else %}
+        <div class="no-activities">
+            No activities found.
+        </div>
+        {% endfor %}
+    </div>
+</section>
+{% endblock %}

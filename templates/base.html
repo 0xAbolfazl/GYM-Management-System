@@ -11,13 +11,14 @@
     <header>
         <div class="container">
             <h1>Gym Athlete Registration</h1>
-            <nav>
-                <ul>
-                    <li><a href="{{ url_for('home') }}">Dashboard</a></li>
-                    <li><a href="{{ url_for('register') }}">Register Athlete</a></li>
-                    <li><a href="{{ url_for('athletes') }}">View Athletes</a></li>
-                </ul>
-            </nav>
+                <nav>
+                    <ul>
+                        <li><a href="{{ url_for('home') }}">Dashboard</a></li>
+                        <li><a href="{{ url_for('register') }}">Register Athlete</a></li>
+                        <li><a href="{{ url_for('athletes') }}">View Athletes</a></li>
+                        <li><a href="{{ url_for('history') }}">Activity History</a></li>
+                    </ul>
+                </nav>
         </div>
     </header>
     
@@ -32,3 +33,13 @@
     </footer>
 </body>
 </html>
+
+{% with messages = get_flashed_messages(with_categories=true) %}
+    {% if messages %}
+        <div class="flash-messages">
+            {% for category, message in messages %}
+                <div class="flash-{{ category }}">{{ message }}</div>
+            {% endfor %}
+        </div>
+    {% endif %}
+{% endwith %}
