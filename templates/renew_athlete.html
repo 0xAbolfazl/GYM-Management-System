@@ -1,0 +1,105 @@
+{% extends "base.html" %}
+<head>
+    <link rel="stylesheet" href="{{ url_for('static', filename='renew_athele.css') }}">
+</head>
+{% block content %}
+<div class="container">
+    <div class="registration-form">
+        <h2><i class="fas fa-calendar-plus"></i> Renew Membership</h2>
+        
+        <div class="current-membership">
+            <h4>{{ athlete.first_name }} {{ athlete.last_name }} <span class="id-badge">ID: {{ athlete.id }}</span></h4>
+            <div class="membership-details">
+                <div>
+                    <span class="detail-label">Remaining Days:</span>
+                    <span class="detail-value">{{ athlete.days_remaining }} days</span>
+                </div>
+                <div>
+                    <span class="detail-label">Current End Date:</span>
+                    <span class="detail-value">{{ athlete.end_date }}</span>
+                </div>
+            </div>
+        </div>
+
+        <form method="POST" action="{{ url_for('renew_athlete', athlete_id=athlete.id) }}">
+            <div class="form-group">
+                <label for="days">Additional Training Days</label>
+                <div class="days-options">
+                    <button type="button" class="day-option" data-days="30">30 Days</button>
+                    <button type="button" class="day-option" data-days="60">60 Days</button>
+                    <button type="button" class="day-option" data-days="90">90 Days</button>
+                    <button type="button" class="day-option" data-days="180">180 Days</button>
+                </div>
+                <input type="number" id="days" name="days" min="1" required class="days-input">
+            </div>
+
+            <div class="form-group">
+                <label for="new_end_date">New End Date</label>
+                <input type="text" id="new_end_date" class="end-date-display" readonly>
+            </div>
+
+            <button type="submit" class="btn-submit" onclick="return confirmRenewal()">
+                <i class="fas fa-sync-alt"></i> Renew Membership
+            </button>
+        </form>
+    </div>
+</div>
+
+<script>
+    // Calculate new end date
+    function calculateNewEndDate(days) {
+        if (days > 0) {
+            const endDate = new Date('{{ athlete.end_date }}');
+            endDate.setDate(endDate.getDate() + days);
+            document.getElementById('new_end_date').value = endDate.toLocaleDateString('en-US', { 
+                year: 'numeric', 
+                month: 'long', 
+                day: 'numeric' 
+            });
+        } else {
+            document.getElementById('new_end_date').value = '';
+        }
+    }
+
+    // Day option buttons
+    document.querySelectorAll('.day-option').forEach(button => {
+        button.addEventListener('click', function() {
+            const days = parseInt(this.getAttribute('data-days'));
+            document.getElementById('days').value = days;
+            calculateNewEndDate(days);
+            
+            // Update active button
+            document.querySelectorAll('.day-option').forEach(btn => {
+                btn.classList.remove('active');
+            });
+            this.classList.add('active');
+        });
+    });
+
+    // Manual input
+    document.getElementById('days').addEventListener('input', function() {
+        const days = parseInt(this.value) || 0;
+        calculateNewEndDate(days);
+        
+        // Remove active class from all buttons
+        document.querySelectorAll('.day-option').forEach(btn => {
+            btn.classList.remove('active');
+        });
+    });
+
+    // Confirmation
+    function confirmRenewal() {
+        const days = parseInt(document.getElementById('days').value);
+        if (days <= 0) {
+            alert('Please enter a valid number of days');
+            return false;
+        }
+        return confirm(`Are you sure you want to renew membership for ${days} additional days?`);
+    }
+
+    // Initial calculation
+    window.addEventListener('load', function() {
+        calculateNewEndDate(parseInt(document.getElementById('days').value) || 0);
+    });
+</script>
+{% endblock %}

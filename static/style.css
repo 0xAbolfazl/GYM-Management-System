@@ -8,6 +8,7 @@
     --success-color: #28a745;
     --warning-color: #ffc107;
     --danger-color: #dc3545;
+    --renewal-color: #6bc9ff;
 }
 
 * {
@@ -623,6 +624,19 @@ input[type="date"]:focus {
 .activity-action.registration {
     background-color: var(--success-color);
 }
+
+.activity-action.renewal {
+    background-color: var(--renewal-color);
+}
+
+.activity-action.deletion {
+    background-color: var(--danger-color);
+}
+
+.activity-action.update {
+    background-color: var(--warning-color);
+}
+
 
 .activity-timestamp {
     color: var(--light-text);

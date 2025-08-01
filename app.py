@@ -168,7 +168,6 @@ def view_athlete(athlete_id):
         flash('Athlete not found!', 'danger')
         return redirect(url_for('athletes'))
     
-    # محاسبات تاریخ را در پایتون انجام دهید
     start_date = datetime.strptime(athlete['start_date'], '%Y-%m-%d')
     end_date = start_date + timedelta(days=athlete['days_remaining'])
     
@@ -235,35 +234,58 @@ def renew_athlete(athlete_id):
     if request.method == 'POST':
         additional_days = int(request.form['days'])
         
-        # Get current days remaining
-        athlete = conn.execute('SELECT days_remaining, first_name, last_name FROM athletes WHERE id = ?', 
-                             (athlete_id,)).fetchone()
+        # Get current athlete data
+        athlete = conn.execute('SELECT * FROM athletes WHERE id = ?', (athlete_id,)).fetchone()
         
-        new_days = athlete['days_remaining'] + additional_days
+        if not athlete:
+            flash('Athlete not found!', 'danger')
+            return redirect(url_for('athletes'))
         
-        conn.execute('UPDATE athletes SET days_remaining = ? WHERE id = ?',
-                    (new_days, athlete_id))
+        # Calculate new values
+        current_days = athlete['days_remaining']
+        new_days_remaining = current_days + additional_days
+        original_days = athlete['days_remaining'] 
+        
+        # Update database
+        conn.execute('''UPDATE athletes SET 
+                      days_remaining = ?
+                      WHERE id = ?''',
+                    (new_days_remaining, athlete_id))
         conn.commit()
         conn.close()
         
+        # Log activity
         log_activity(
             action="RENEWAL",
-            details=f"Renewed athlete: {athlete['first_name']} {athlete['last_name']} (ID: {athlete_id}) for {additional_days} more days",
+            details=f"Renewed membership for {athlete['first_name']} {athlete['last_name']} (ID: {athlete_id}) for {additional_days} days",
             athlete_id=athlete_id
         )
         
-        flash(f'Athlete renewed successfully for {additional_days} days!', 'success')
+        flash(f'Membership renewed successfully for {additional_days} days!', 'success')
         return redirect(url_for('view_athlete', athlete_id=athlete_id))
     
-    athlete = conn.execute('SELECT id, first_name, last_name FROM athletes WHERE id = ?', 
-                         (athlete_id,)).fetchone()
+    # GET request - show form
+    athlete = conn.execute('SELECT * FROM athletes WHERE id = ?', (athlete_id,)).fetchone()
     conn.close()
     
     if not athlete:
         flash('Athlete not found!', 'danger')
         return redirect(url_for('athletes'))
     
-    return render_template('renew_athlete.html', athlete=athlete)
+    # Calculate end date
+    start_date = datetime.strptime(athlete['start_date'], '%Y-%m-%d')
+    end_date = (start_date + timedelta(days=athlete['days_remaining'])).strftime('%Y-%m-%d')
+    
+    athlete_data = {
+        'id': athlete['id'],
+        'first_name': athlete['first_name'],
+        'last_name': athlete['last_name'],
+        'days_remaining': athlete['days_remaining'],
+        'end_date': end_date,
+        'original_days': athlete['days_remaining']  
+    }
+    
+    return render_template('renew_athlete.html', athlete=athlete_data)
 
 @app.route('/athlete/<int:athlete_id>/delete', methods=['POST'])
 def delete_athlete(athlete_id):
