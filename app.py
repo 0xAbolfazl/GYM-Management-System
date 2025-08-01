@@ -4,15 +4,19 @@ from datetime import datetime, timedelta
 
 app = Flask(__name__)
 
-# Initialize database
 def init_db():
     conn = sqlite3.connect('database.db')
     c = conn.cursor()
     c.execute('''CREATE TABLE IF NOT EXISTS athletes
                  (id INTEGER PRIMARY KEY AUTOINCREMENT,
-                  full_name TEXT NOT NULL,
+                  first_name TEXT NOT NULL,
+                  last_name TEXT NOT NULL,
                   phone TEXT NOT NULL,
+                  emergency_phone TEXT,
+                  father_name TEXT,
+                  birth_date TEXT,
                   registration_date TEXT NOT NULL,
+                  start_date TEXT NOT NULL,
                   days_remaining INTEGER NOT NULL)''')
     conn.commit()
     conn.close()
@@ -52,46 +56,71 @@ def home():
 @app.route('/register', methods=['GET', 'POST'])
 def register():
     if request.method == 'POST':
-        full_name = request.form['full_name']
+        first_name = request.form['first_name']
+        last_name = request.form['last_name']
         phone = request.form['phone']
+        emergency_phone = request.form.get('emergency_phone')
+        father_name = request.form.get('father_name')
+        birth_date = request.form.get('birth_date')
         days = int(request.form['days'])
+        start_date = request.form.get('start_date') or datetime.now().strftime('%Y-%m-%d')
         
         registration_date = datetime.now().strftime('%Y-%m-%d %H:%M:%S')
         
         conn = sqlite3.connect('database.db')
         c = conn.cursor()
-        c.execute("INSERT INTO athletes (full_name, phone, registration_date, days_remaining) VALUES (?, ?, ?, ?)",
-                  (full_name, phone, registration_date, days))
+        c.execute('''INSERT INTO athletes 
+                    (first_name, last_name, phone, emergency_phone, father_name, 
+                     birth_date, registration_date, start_date, days_remaining)
+                    VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)''',
+                  (first_name, last_name, phone, emergency_phone, father_name,
+                   birth_date, registration_date, start_date, days))
         conn.commit()
         conn.close()
         
         return redirect(url_for('athletes'))
     
-    return render_template('register.html')
+    default_start = datetime.now().strftime('%Y-%m-%d')
+    return render_template('register.html', default_start=default_start)
+
 
 @app.route('/athletes')
 def athletes():
     conn = sqlite3.connect('database.db')
     c = conn.cursor()
-    c.execute("SELECT * FROM athletes ORDER BY registration_date DESC")
+    c.execute("SELECT * FROM athletes ORDER BY start_date DESC")
     athletes_data = c.fetchall()
     conn.close()
     
-    # Calculate remaining days for each athlete
     athletes = []
     for athlete in athletes_data:
-        reg_date = datetime.strptime(athlete[3], '%Y-%m-%d %H:%M:%S')
-        end_date = reg_date + timedelta(days=athlete[4])
+        start_date_str = athlete[8] if isinstance(athlete[8], str) else athlete[8].strftime('%Y-%m-%d')
+        start_date = datetime.strptime(start_date_str, '%Y-%m-%d')
+        
+        end_date = start_date + timedelta(days=athlete[9])
         remaining_days = (end_date - datetime.now()).days
-        remaining_days = max(0, remaining_days)  # Don't show negative days
+        remaining_days = max(0, remaining_days)
+        
+        birth_date = athlete[6]
+        if birth_date:
+            if isinstance(birth_date, str):
+                birth_date = datetime.strptime(birth_date, '%Y-%m-%d').strftime('%Y-%m-%d')
+            else:
+                birth_date = birth_date.strftime('%Y-%m-%d')
         
         athlete_dict = {
             'id': athlete[0],
-            'full_name': athlete[1],
-            'phone': athlete[2],
-            'registration_date': reg_date.strftime('%Y-%m-%d'),
+            'first_name': athlete[1],
+            'last_name': athlete[2],
+            'full_name': f"{athlete[1]} {athlete[2]}",
+            'phone': athlete[3],
+            'emergency_phone': athlete[4],
+            'father_name': athlete[5],
+            'birth_date': birth_date,
+            'registration_date': athlete[7].strftime('%Y-%m-%d %H:%M:%S') if not isinstance(athlete[7], str) else athlete[7],
+            'start_date': start_date.strftime('%Y-%m-%d'),
             'days_remaining': remaining_days,
-            'original_days': athlete[4]
+            'original_days': athlete[9]
         }
         athletes.append(athlete_dict)
     

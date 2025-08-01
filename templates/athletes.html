@@ -17,11 +17,18 @@
                     {{ athlete.days_remaining }} days left
                 </span>
             </div>
-            <div class="athlete-details">
-                <p><strong>Phone:</strong> {{ athlete.phone }}</p>
-                <p><strong>Registered:</strong> {{ athlete.registration_date }}</p>
-                <p><strong>Original Period:</strong> {{ athlete.original_days }} days</p>
-            </div>
+                <div class="athlete-details">
+                    <p><strong>Phone:</strong> {{ athlete.phone }}</p>
+                    <p><strong>Emergency:</strong> {{ athlete.emergency_phone if athlete.emergency_phone else 'N/A' }}</p>
+                    <p><strong>Father:</strong> {{ athlete.father_name if athlete.father_name else 'N/A' }}</p>
+                    <p><strong>Birth Date:</strong> {{ athlete.birth_date if athlete.birth_date else 'N/A' }}</p>
+                    <p><strong>Registered:</strong> {{ athlete.registration_date }}</p>
+                    <p><strong>Start Date:</strong> {{ athlete.start_date }}</p>
+                    <p><strong>Original Period:</strong> {{ athlete.original_days }} days</p>
+                    <p><strong>Days Remaining:</strong> <span class="{% if athlete.days_remaining < 7 %}expiring{% endif %}">
+                        {{ athlete.days_remaining }} days
+                    </span></p>
+                </div>
         </div>
         {% endfor %}
     </div>
