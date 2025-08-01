@@ -15,21 +15,35 @@
         {% for athlete in athletes %}
         <div class="athlete-card">
             <div class="athlete-header">
-                <h3>{{ athlete.full_name }}</h3>
+                <h3>{{ athlete.last_name }}</h3>
                 <span class="id-badge">ID: {{ athlete.id }}</span>
                 <span class="days-badge {% if athlete.days_remaining < 7 %}expiring{% endif %}">
                     {{ athlete.days_remaining }} days left
                 </span>
             </div>
-            <div class="athlete-details">
-                <p><strong>ID:</strong> {{ athlete.id }}</p>
+            
+            <div class="athlete-essential-info">
+                <p><strong>Full Name:</strong> {{ athlete.first_name }} {{ athlete.last_name }}</p>
                 <p><strong>Phone:</strong> {{ athlete.phone }}</p>
-                <p><strong>Emergency:</strong> {{ athlete.emergency_phone if athlete.emergency_phone else 'N/A' }}</p>
-                <p><strong>Father:</strong> {{ athlete.father_name if athlete.father_name else 'N/A' }}</p>
-                <p><strong>Birth Date:</strong> {{ athlete.birth_date if athlete.birth_date else 'N/A' }}</p>
-                <p><strong>Registered:</strong> {{ athlete.registration_date }}</p>
-                <p><strong>Start Date:</strong> {{ athlete.start_date }}</p>
-                <p><strong>Original Period:</strong> {{ athlete.original_days }} days</p>
+                <p><strong>Registered:</strong> {{ athlete.registration_date.split(' ')[0] }}</p>
+                <p><strong>End Date:</strong> {{ (datetime.strptime(athlete.start_date, '%Y-%m-%d') + timedelta(days=athlete.original_days)).strftime('%Y-%m-%d') }}</p>
+            </div>
+            
+            <div class="athlete-actions">
+                <a href="{{ url_for('view_athlete', athlete_id=athlete.id) }}" class="action-btn view-btn">
+                    <i class="fas fa-eye"></i> View
+                </a>
+                <a href="{{ url_for('edit_athlete', athlete_id=athlete.id) }}" class="action-btn edit-btn">
+                    <i class="fas fa-edit"></i> Edit
+                </a>
+                <a href="{{ url_for('renew_athlete', athlete_id=athlete.id) }}" class="action-btn renew-btn">
+                    <i class="fas fa-sync-alt"></i> Renew
+                </a>
+                <form action="{{ url_for('delete_athlete', athlete_id=athlete.id) }}" method="POST" class="delete-form">
+                    <button type="submit" class="action-btn delete-btn" onclick="return confirm('Are you sure you want to delete this athlete?')">
+                        <i class="fas fa-trash-alt"></i> Delete
+                    </button>
+                </form>
             </div>
         </div>
         {% endfor %}
