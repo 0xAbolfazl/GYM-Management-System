@@ -168,10 +168,9 @@ def view_athlete(athlete_id):
         flash('Athlete not found!', 'danger')
         return redirect(url_for('athletes'))
     
+    # محاسبات تاریخ را در پایتون انجام دهید
     start_date = datetime.strptime(athlete['start_date'], '%Y-%m-%d')
     end_date = start_date + timedelta(days=athlete['days_remaining'])
-    remaining_days = (end_date - datetime.now()).days
-    remaining_days = max(0, remaining_days)
     
     athlete_data = {
         'id': athlete['id'],
@@ -183,9 +182,9 @@ def view_athlete(athlete_id):
         'birth_date': athlete['birth_date'],
         'registration_date': athlete['registration_date'],
         'start_date': athlete['start_date'],
-        'days_remaining': remaining_days,
-        'original_days': athlete['days_remaining'],
-        'end_date': end_date.strftime('%Y-%m-%d')
+        'end_date': end_date.strftime('%Y-%m-%d'),  
+        'days_remaining': (end_date - datetime.now()).days,
+        'original_days': athlete['days_remaining']
     }
     
     return render_template('view_athlete.html', athlete=athlete_data)
