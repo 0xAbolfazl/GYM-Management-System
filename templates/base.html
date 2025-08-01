@@ -53,10 +53,14 @@
                         <i class="fas fa-user-shield"></i>
                     </div>
                     <div class="user-info">
-                        <span class="username">Admin</span>
-                        <span class="role">Manager</span>
+                        {% if session.get('full_name') %}
+                            <span class="username">{{ session['full_name'] }}</span>
+                            <span class="role">{{ session.get('role', 'Manager') }}</span>
+                        {% else %}
+                            <span class="username">Admin</span>
+                            <span class="role">Manager</span>
+                        {% endif %}
                     </div>
-                </div>
             </div>
         </aside>
 
