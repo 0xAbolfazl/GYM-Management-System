@@ -1,0 +1,153 @@
+/* Renewal Page Styles */
+.container {
+    max-width: 800px;
+    margin: 2rem auto;
+    padding: 0 15px;
+}
+
+.registration-form {
+    background: white;
+    padding: 2rem;
+    border-radius: 10px;
+    box-shadow: 0 4px 20px rgba(0, 0, 0, 0.08);
+}
+
+.registration-form h2 {
+    color: var(--primary-color);
+    text-align: center;
+    margin-bottom: 1.5rem;
+    font-size: 1.6rem;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 0.75rem;
+}
+
+.current-membership {
+    background: var(--secondary-color);
+    padding: 1.25rem;
+    border-radius: 8px;
+    margin-bottom: 1.5rem;
+    border-left: 4px solid var(--primary-color);
+}
+
+.current-membership h4 {
+    margin: 0 0 0.75rem 0;
+    color: var(--primary-color);
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+    font-size: 1.1rem;
+}
+
+.id-badge {
+    background: rgba(74, 107, 255, 0.1);
+    color: var(--primary-color);
+    padding: 0.25rem 0.75rem;
+    border-radius: 20px;
+    font-size: 0.8rem;
+    font-weight: 500;
+}
+
+.membership-details {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+    gap: 1rem;
+}
+
+.detail-label {
+    font-size: 0.85rem;
+    color: var(--light-text);
+    display: block;
+    margin-bottom: 0.25rem;
+}
+
+.detail-value {
+    font-weight: 500;
+    font-size: 1rem;
+}
+
+.days-options {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(80px, 1fr));
+    gap: 0.75rem;
+    margin: 0.75rem 0;
+}
+
+.day-option {
+    padding: 0.75rem;
+    background-color: white;
+    border: 1px solid var(--border-color);
+    border-radius: 6px;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    text-align: center;
+    font-weight: 500;
+    font-size: 0.9rem;
+}
+
+.day-option:hover {
+    border-color: var(--primary-color);
+    color: var(--primary-color);
+}
+
+.day-option.active {
+    background-color: var(--primary-color);
+    color: white;
+    border-color: var(--primary-color);
+}
+
+.days-input {
+    width: 100%;
+    padding: 0.75rem 1rem;
+    border: 1px solid var(--border-color);
+    border-radius: 6px;
+    font-size: 1rem;
+    margin-top: 0.5rem;
+}
+
+.end-date-display {
+    width: 100%;
+    padding: 0.75rem 1rem;
+    background-color: #f8f9fa;
+    border: 1px solid #e0e0e0;
+    border-radius: 6px;
+    font-size: 1rem;
+    color: var(--text-color);
+    margin-top: 0.5rem;
+}
+
+.btn-submit {
+    width: 100%;
+    padding: 0.85rem;
+    background-color: var(--success-color);
+    color: white;
+    border: none;
+    border-radius: 6px;
+    font-size: 1rem;
+    font-weight: 500;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    margin-top: 1rem;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 0.5rem;
+}
+
+.btn-submit:hover {
+    background-color: #218838;
+    transform: translateY(-2px);
+    box-shadow: 0 2px 10px rgba(40, 167, 69, 0.3);
+}
+
+/* Responsive */
+@media (max-width: 576px) {
+    .registration-form {
+        padding: 1.5rem;
+    }
+    
+    .days-options {
+        grid-template-columns: 1fr 1fr;
+    }
+}

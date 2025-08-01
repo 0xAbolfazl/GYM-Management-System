@@ -1,0 +1,68 @@
+{% extends "base.html" %}
+
+{% block content %}
+<section class="athlete-detail">
+    <h2>Athlete Details</h2>
+    
+    <div class="athlete-detail-card">
+        <div class="detail-header">
+            <h3>{{ athlete.last_name }}</h3>
+            <span class="id-badge">ID: {{ athlete.id }}</span>
+        </div>
+        
+        <div class="detail-info">
+            <div class="detail-row">
+                <span class="detail-label">Full Name:</span>
+                <span class="detail-value">{{ athlete.first_name }} {{ athlete.last_name }}</span>
+            </div>
+            <div class="detail-row">
+                <span class="detail-label">Phone:</span>
+                <span class="detail-value">{{ athlete.phone }}</span>
+            </div>
+            <div class="detail-row">
+                <span class="detail-label">Emergency Phone:</span>
+                <span class="detail-value">{{ athlete.emergency_phone or 'N/A' }}</span>
+            </div>
+            <div class="detail-row">
+                <span class="detail-label">Father's Name:</span>
+                <span class="detail-value">{{ athlete.father_name or 'N/A' }}</span>
+            </div>
+            <div class="detail-row">
+                <span class="detail-label">Birth Date:</span>
+                <span class="detail-value">{{ athlete.birth_date or 'N/A' }}</span>
+            </div>
+            <div class="detail-row">
+                <span class="detail-label">Registration Date:</span>
+                <span class="detail-value">{{ athlete.registration_date }}</span>
+            </div>
+            <div class="detail-row">
+                <span class="detail-label">Start Date:</span>
+                <span class="detail-value">{{ athlete.start_date }}</span>
+            </div>
+            <div class="detail-row">
+                <span class="detail-label">End Date:</span>
+                <span class="detail-value">{{ athlete.end_date }}</span>
+            </div>
+            <div class="detail-row">
+                <span class="detail-label">Period:</span>
+                <span class="detail-value">{{ athlete.original_days }}</span>
+            </div>
+            <div class="detail-row">
+                <span class="detail-label">Days Remaining:</span>
+                <span class="detail-value {% if athlete.days_remaining < 7 %}expiring{% endif %}">
+                    {{ athlete.days_remaining }} days
+                </span>
+            </div>
+        </div>
+        
+        <div class="detail-actions">
+            <a href="{{ url_for('athletes') }}" class="action-btn back-btn">
+                <i class="fas fa-arrow-left"></i> Back to List
+            </a>
+            <a href="{{ url_for('edit_athlete', athlete_id=athlete.id) }}" class="action-btn edit-btn">
+                <i class="fas fa-edit"></i> Edit
+            </a>
+        </div>
+    </div>
+</section>
+{% endblock %}
