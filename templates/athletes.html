@@ -5,7 +5,10 @@
     <h2>Registered Athletes</h2>
     
     <div class="search-filter">
-        <input type="text" id="search" placeholder="Search athletes...">
+        <form method="GET" action="{{ url_for('athletes') }}">
+            <input type="text" id="search" name="search" placeholder="Search by ID or name..." value="{{ search_query }}">
+            <button type="submit">Search</button>
+        </form>
     </div>
     
     <div class="athletes-grid">
@@ -13,22 +16,21 @@
         <div class="athlete-card">
             <div class="athlete-header">
                 <h3>{{ athlete.full_name }}</h3>
+                <span class="id-badge">ID: {{ athlete.id }}</span>
                 <span class="days-badge {% if athlete.days_remaining < 7 %}expiring{% endif %}">
                     {{ athlete.days_remaining }} days left
                 </span>
             </div>
-                <div class="athlete-details">
-                    <p><strong>Phone:</strong> {{ athlete.phone }}</p>
-                    <p><strong>Emergency:</strong> {{ athlete.emergency_phone if athlete.emergency_phone else 'N/A' }}</p>
-                    <p><strong>Father:</strong> {{ athlete.father_name if athlete.father_name else 'N/A' }}</p>
-                    <p><strong>Birth Date:</strong> {{ athlete.birth_date if athlete.birth_date else 'N/A' }}</p>
-                    <p><strong>Registered:</strong> {{ athlete.registration_date }}</p>
-                    <p><strong>Start Date:</strong> {{ athlete.start_date }}</p>
-                    <p><strong>Original Period:</strong> {{ athlete.original_days }} days</p>
-                    <p><strong>Days Remaining:</strong> <span class="{% if athlete.days_remaining < 7 %}expiring{% endif %}">
-                        {{ athlete.days_remaining }} days
-                    </span></p>
-                </div>
+            <div class="athlete-details">
+                <p><strong>ID:</strong> {{ athlete.id }}</p>
+                <p><strong>Phone:</strong> {{ athlete.phone }}</p>
+                <p><strong>Emergency:</strong> {{ athlete.emergency_phone if athlete.emergency_phone else 'N/A' }}</p>
+                <p><strong>Father:</strong> {{ athlete.father_name if athlete.father_name else 'N/A' }}</p>
+                <p><strong>Birth Date:</strong> {{ athlete.birth_date if athlete.birth_date else 'N/A' }}</p>
+                <p><strong>Registered:</strong> {{ athlete.registration_date }}</p>
+                <p><strong>Start Date:</strong> {{ athlete.start_date }}</p>
+                <p><strong>Original Period:</strong> {{ athlete.original_days }} days</p>
+            </div>
         </div>
         {% endfor %}
     </div>

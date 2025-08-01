@@ -1,14 +1,29 @@
 from flask import Flask, render_template, request, redirect, url_for
 import sqlite3
 from datetime import datetime, timedelta
+import random
 
 app = Flask(__name__)
+
+def generate_unique_id():
+    conn = sqlite3.connect('database.db')
+    c = conn.cursor()
+    
+    while True:
+        # Generate a random 4-digit ID between 1000-9999
+        athlete_id = random.randint(1000, 9999)
+        
+        # Check if ID already exists
+        c.execute("SELECT 1 FROM athletes WHERE id = ?", (athlete_id,))
+        if not c.fetchone():
+            conn.close()
+            return athlete_id
 
 def init_db():
     conn = sqlite3.connect('database.db')
     c = conn.cursor()
     c.execute('''CREATE TABLE IF NOT EXISTS athletes
-                 (id INTEGER PRIMARY KEY AUTOINCREMENT,
+                 (id INTEGER PRIMARY KEY,
                   first_name TEXT NOT NULL,
                   last_name TEXT NOT NULL,
                   phone TEXT NOT NULL,
@@ -56,6 +71,7 @@ def home():
 @app.route('/register', methods=['GET', 'POST'])
 def register():
     if request.method == 'POST':
+        athlete_id = generate_unique_id()
         first_name = request.form['first_name']
         last_name = request.form['last_name']
         phone = request.form['phone']
@@ -70,10 +86,10 @@ def register():
         conn = sqlite3.connect('database.db')
         c = conn.cursor()
         c.execute('''INSERT INTO athletes 
-                    (first_name, last_name, phone, emergency_phone, father_name, 
+                    (id, first_name, last_name, phone, emergency_phone, father_name, 
                      birth_date, registration_date, start_date, days_remaining)
-                    VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)''',
-                  (first_name, last_name, phone, emergency_phone, father_name,
+                    VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)''',
+                  (athlete_id, first_name, last_name, phone, emergency_phone, father_name,
                    birth_date, registration_date, start_date, days))
         conn.commit()
         conn.close()
@@ -83,12 +99,29 @@ def register():
     default_start = datetime.now().strftime('%Y-%m-%d')
     return render_template('register.html', default_start=default_start)
 
-
 @app.route('/athletes')
 def athletes():
+    search_query = request.args.get('search', '').strip()
+    
     conn = sqlite3.connect('database.db')
     c = conn.cursor()
-    c.execute("SELECT * FROM athletes ORDER BY start_date DESC")
+    
+    if search_query:
+        # Search by ID or name (first, last, or full name)
+        query = """
+        SELECT * FROM athletes 
+        WHERE id = ? OR 
+              first_name LIKE ? OR 
+              last_name LIKE ? OR
+              first_name || ' ' || last_name LIKE ?
+        ORDER BY start_date DESC
+        """
+        search_param = f"%{search_query}%"
+        c.execute(query, (search_query, search_param, search_param, search_param))
+    else:
+        # Get all athletes
+        c.execute("SELECT * FROM athletes ORDER BY start_date DESC")
+    
     athletes_data = c.fetchall()
     conn.close()
     
@@ -124,7 +157,7 @@ def athletes():
         }
         athletes.append(athlete_dict)
     
-    return render_template('athletes.html', athletes=athletes)
+    return render_template('athletes.html', athletes=athletes, search_query=search_query)
 
 if __name__ == '__main__':
     app.run(debug=True)
