@@ -38,6 +38,7 @@ def init_db():
                  (id INTEGER PRIMARY KEY,
                   first_name TEXT NOT NULL,
                   last_name TEXT NOT NULL,
+                  gender TEXT NOT NULL,
                   phone TEXT NOT NULL,
                   emergency_phone TEXT,
                   father_name TEXT,
@@ -91,6 +92,7 @@ def login():
                 session['logged_in'] = True
                 session['username'] = user_dict['username']
                 session['full_name'] = f"{user_dict['first_name']} {user_dict['last_name']}"
+                session['gender'] = f'{user_dict["gender"]}'
                 
                 log_activity("LOGIN", f"User {username} logged in")
                 flash('Logged in successfully!', 'success')
@@ -105,14 +107,14 @@ def login():
 @login_required
 def home():
     conn = get_db_connection()
-    
+    gender = session['gender']
     stats = {
-        'total_athletes': conn.execute('SELECT COUNT(*) FROM athletes').fetchone()[0],
-        'active_athletes': conn.execute('SELECT COUNT(*) FROM athletes WHERE days_remaining > 0').fetchone()[0],
-        'expiring_soon': conn.execute('SELECT COUNT(*) FROM athletes WHERE days_remaining > 0 AND days_remaining < 7').fetchone()[0],
+        'total_athletes': conn.execute("SELECT COUNT(*) FROM athletes WHERE gender = ?", (gender,)).fetchone()[0],
+        'active_athletes': conn.execute("SELECT COUNT(*) FROM athletes WHERE gender = ? AND days_remaining > 0", (gender,)).fetchone()[0],
+        'expiring_soon': conn.execute("SELECT COUNT(*) FROM athletes WHERE gender = ? AND days_remaining > 0 AND days_remaining < 7", (gender,)).fetchone()[0],
         'recent_registrations': conn.execute(
-            'SELECT COUNT(*) FROM athletes WHERE registration_date > ?',
-            ((datetime.now() - timedelta(days=7)).strftime('%Y-%m-%d %H:%M:%S'),)
+            'SELECT COUNT(*) FROM athletes WHERE gender = ? AND registration_date > ?',
+            (gender, (datetime.now() - timedelta(days=7)).strftime('%Y-%m-%d %H:%M:%S'),)
         ).fetchone()[0]
     }
     
@@ -132,16 +134,17 @@ def register():
         birth_date = request.form.get('birth_date')
         days = int(request.form['days'])
         start_date = request.form.get('start_date') or datetime.now().strftime('%Y-%m-%d')
+        gender = session['gender']
         
         registration_date = datetime.now().strftime('%Y-%m-%d %H:%M:%S')
         
         conn = get_db_connection()
         conn.execute('''INSERT INTO athletes 
                       (id, first_name, last_name, phone, emergency_phone, father_name, 
-                       birth_date, registration_date, start_date, days_remaining)
-                      VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)''',
+                       birth_date, registration_date, start_date, days_remaining, gender)
+                      VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)''',
                     (athlete_id, first_name, last_name, phone, emergency_phone, father_name,
-                     birth_date, registration_date, start_date, days))
+                     birth_date, registration_date, start_date, days, gender))
         conn.commit()
         conn.close()
         
@@ -162,18 +165,18 @@ def athletes():
     search_query = request.args.get('search', '').strip()
     
     conn = get_db_connection()
-    
+    gender = session['gender']
     if search_query:
         query = '''SELECT * FROM athletes 
-                 WHERE id = ? OR 
+                 WHERE gender = ? AND id = ? OR 
                        first_name LIKE ? OR 
                        last_name LIKE ? OR
                        first_name || ' ' || last_name LIKE ?
                  ORDER BY start_date DESC'''
         search_param = f"%{search_query}%"
-        athletes_data = conn.execute(query, (search_query, search_param, search_param, search_param)).fetchall()
+        athletes_data = conn.execute(query, (gender, search_query, search_param, search_param, search_param)).fetchall()
     else:
-        athletes_data = conn.execute('SELECT * FROM athletes ORDER BY start_date DESC').fetchall()
+        athletes_data = conn.execute('SELECT * FROM athletes WHERE gender = ? ORDER BY start_date DESC', (gender, )).fetchall()
     
     athletes = []
     for athlete in athletes_data:

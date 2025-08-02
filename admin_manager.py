@@ -14,6 +14,7 @@ def create_database():
         password TEXT NOT NULL,
         first_name TEXT NOT NULL,
         last_name TEXT NOT NULL,
+        gender TEXT NOT NULL,
         created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
         updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
     )
@@ -35,13 +36,15 @@ def create_database():
             'username': 'admin1',
             'password': 'securepass123',  # In production, use proper hashing
             'first_name': 'Ali',
-            'last_name': 'Mohammadi'
+            'last_name': 'Mohammadi',
+            'gender' : 'male'
         },
         {
             'username': 'admin2',
             'password': 'strongpass456',  # In production, use proper hashing
             'first_name': 'Zahra',
-            'last_name': 'Rahimi'
+            'last_name': 'Rahimi',
+            'gender' : 'female'
         }
     ]
     
@@ -51,9 +54,9 @@ def create_database():
         hashed_password = hashlib.sha256(admin['password'].encode()).hexdigest()
         
         cursor.execute('''
-        INSERT OR IGNORE INTO admins (username, password, first_name, last_name)
-        VALUES (?, ?, ?, ?)
-        ''', (admin['username'], hashed_password, admin['first_name'], admin['last_name']))
+        INSERT OR IGNORE INTO admins (username, password, first_name, last_name ,gender)
+        VALUES (?, ?, ?, ?, ?)
+        ''', (admin['username'], hashed_password, admin['first_name'], admin['last_name'], admin['gender']))
     
     # Commit changes and close connection
     conn.commit()
