@@ -1,0 +1,316 @@
+/* ========== ATTENDANCE PAGE STYLES ========== */
+
+.attendance-container {
+  max-width: 1200px;
+  margin: 0 auto;
+  padding: var(--spacing-lg);
+}
+
+/* Header Section */
+.attendance-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: var(--spacing-lg);
+  padding-bottom: var(--spacing-md);
+  border-bottom: 1px solid var(--border-color);
+}
+
+.attendance-title {
+  font-size: 1.75rem;
+  color: var(--primary-color);
+  margin: 0;
+}
+
+/* Filter Controls */
+.attendance-filters {
+  background-color: white;
+  border-radius: var(--radius-lg);
+  box-shadow: var(--shadow-sm);
+  padding: var(--spacing-md);
+  margin-bottom: var(--spacing-lg);
+}
+
+.filter-row {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--spacing-md);
+  margin-bottom: var(--spacing-md);
+}
+
+.filter-group {
+  flex: 1;
+  min-width: 200px;
+}
+
+/* Check In/Out Form */
+.check-form {
+  background-color: white;
+  border-radius: var(--radius-lg);
+  box-shadow: var(--shadow-sm);
+  padding: var(--spacing-md);
+  margin-bottom: var(--spacing-lg);
+  position: relative;
+  overflow: hidden;
+}
+
+.check-form::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 4px;
+  height: 100%;
+  background: linear-gradient(to bottom, var(--primary-color), var(--accent-color));
+}
+
+.check-controls {
+  display: flex;
+  gap: var(--spacing-md);
+  align-items: flex-end;
+}
+
+.athlete-select {
+  flex: 2;
+}
+
+.check-buttons {
+  flex: 1;
+  display: flex;
+  gap: var(--spacing-sm);
+}
+
+/* Status Indicators */
+.status-indicator {
+  display: inline-flex;
+  align-items: center;
+  padding: var(--spacing-xs) var(--spacing-sm);
+  border-radius: var(--radius-sm);
+  font-size: 0.85rem;
+  font-weight: 500;
+}
+
+.status-present {
+  background-color: rgba(74, 222, 128, 0.2);
+  color: var(--success-color);
+}
+
+.status-absent {
+  background-color: rgba(248, 113, 113, 0.2);
+  color: var(--danger-color);
+}
+
+/* Attendance Table */
+.attendance-table {
+  width: 100%;
+  border-collapse: collapse;
+  background-color: white;
+  border-radius: var(--radius-lg);
+  overflow: hidden;
+  box-shadow: var(--shadow-sm);
+}
+
+.attendance-table th {
+  background-color: var(--primary-light);
+  color: var(--primary-color);
+  padding: var(--spacing-md);
+  text-align: left;
+  font-weight: 600;
+}
+
+.attendance-table td {
+  padding: var(--spacing-md);
+  border-bottom: 1px solid var(--border-color);
+}
+
+.attendance-table tr:last-child td {
+  border-bottom: none;
+}
+
+.attendance-table tr:hover {
+  background-color: rgba(70, 97, 238, 0.05);
+}
+
+/* Duration Badge */
+.duration-badge {
+  display: inline-block;
+  padding: var(--spacing-xs) var(--spacing-sm);
+  background-color: var(--primary-light);
+  color: var(--primary-color);
+  border-radius: var(--radius-sm);
+  font-size: 0.85rem;
+  font-weight: 500;
+}
+
+/* Current Session Highlight */
+.current-session {
+  position: relative;
+}
+
+.current-session::after {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 3px;
+  height: 100%;
+  background-color: var(--accent-color);
+}
+
+/* Check Buttons */
+.btn-check {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: var(--spacing-xs);
+  padding: var(--spacing-sm) var(--spacing-md);
+  border: none;
+  border-radius: var(--radius-md);
+  font-weight: 500;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  width: 100%;
+}
+
+.btn-check-in {
+  background-color: var(--success-color);
+  color: white;
+}
+
+.btn-check-in:hover {
+  background-color: #3ac174;
+  transform: translateY(-1px);
+  box-shadow: var(--shadow-sm);
+}
+
+.btn-check-out {
+  background-color: var(--warning-color);
+  color: white;
+}
+
+.btn-check-out:hover {
+  background-color: #e6b422;
+  transform: translateY(-1px);
+  box-shadow: var(--shadow-sm);
+}
+
+/* Empty State */
+.empty-state {
+  text-align: center;
+  padding: var(--spacing-xl) 0;
+  color: var(--gray-color);
+}
+
+.empty-state i {
+  font-size: 3rem;
+  margin-bottom: var(--spacing-md);
+  color: var(--border-color);
+}
+
+/* ========== RESPONSIVE ADJUSTMENTS ========== */
+@media (max-width: 992px) {
+  .check-controls {
+    flex-direction: column;
+  }
+  
+  .athlete-select,
+  .check-buttons {
+    width: 100%;
+  }
+}
+
+@media (max-width: 768px) {
+  .attendance-header {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: var(--spacing-md);
+  }
+  
+  .attendance-table {
+    display: block;
+    overflow-x: auto;
+  }
+  
+  .filter-row {
+    flex-direction: column;
+    gap: var(--spacing-md);
+  }
+  
+  .filter-group {
+    min-width: 100%;
+  }
+}
+
+@media (max-width: 480px) {
+  .check-buttons {
+    flex-direction: column;
+  }
+  
+  .btn-check {
+    width: 100%;
+  }
+  
+  .attendance-table th,
+  .attendance-table td {
+    padding: var(--spacing-sm);
+  }
+}
+
+/* ========== ANIMATIONS ========== */
+@keyframes pulse {
+  0% { transform: scale(1); }
+  50% { transform: scale(1.05); }
+  100% { transform: scale(1); }
+}
+
+.current-session {
+  animation: pulse 2s infinite;
+}
+
+/* ========== CUSTOM BADGES ========== */
+.badge-present {
+  background-color: rgba(74, 222, 128, 0.1);
+  color: var(--success-color);
+  padding: var(--spacing-xs) var(--spacing-sm);
+  border-radius: var(--radius-sm);
+  font-size: 0.8rem;
+  display: inline-flex;
+  align-items: center;
+  gap: var(--spacing-xs);
+}
+
+.badge-absent {
+  background-color: rgba(248, 113, 113, 0.1);
+  color: var(--danger-color);
+  padding: var(--spacing-xs) var(--spacing-sm);
+  border-radius: var(--radius-sm);
+  font-size: 0.8rem;
+  display: inline-flex;
+  align-items: center;
+  gap: var(--spacing-xs);
+}
+
+/* ========== TIME INDICATORS ========== */
+.time-indicator {
+  position: relative;
+  padding-left: var(--spacing-lg);
+}
+
+.time-indicator::before {
+  content: '';
+  position: absolute;
+  left: 0;
+  top: 50%;
+  transform: translateY(-50%);
+  width: 12px;
+  height: 12px;
+  border-radius: 50%;
+}
+
+.time-in::before {
+  background-color: var(--success-color);
+}
+
+.time-out::before {
+  background-color: var(--warning-color);
+}
