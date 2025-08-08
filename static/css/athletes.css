@@ -164,23 +164,6 @@
     display: none;
 }
 
-/* Responsive adjustments */
-@media (max-width: 768px) {
-    .athlete-actions {
-        grid-template-columns: repeat(2, 1fr);
-    }
-    
-    .action-btn {
-        grid-column: auto;
-    }
-}
-
-@media (max-width: 480px) {
-    .athlete-actions {
-        grid-template-columns: 1fr;
-    }
-}
-
 /* Button colors (keep existing) */
 .view-btn {
     background-color: var(--info-color);
@@ -216,4 +199,111 @@
 
 .delete-btn:hover {
     background-color: #ef4444;
+}
+
+
+/* ========== RESPONSIVE ADJUSTMENTS ========== */
+@media (max-width: 992px) {
+  .athletes-list {
+    padding: 1rem;
+  }
+  
+  .athletes-list h2 {
+    font-size: 1.5rem;
+    text-align: center;
+  }
+  
+  .search-filter form {
+    flex-direction: column;
+    gap: 0.75rem;
+  }
+  
+  .search-filter button {
+    width: 100%;
+    padding: 0.75rem;
+  }
+}
+
+@media (max-width: 768px) {
+  .athletes-grid {
+    grid-template-columns: repeat(auto-fill, minmax(250px, 1fr));
+    gap: 1rem;
+  }
+  
+  .athlete-header {
+    padding: 0.75rem;
+  }
+  
+  .athlete-essential-info {
+    padding: 0.75rem;
+  }
+  
+  .athlete-essential-info p {
+    font-size: 0.85rem;
+    margin-bottom: 0.5rem;
+  }
+  
+  .athlete-actions {
+    padding: 0.75rem;
+    grid-template-columns: repeat(2, 1fr);
+    gap: 0.5rem;
+  }
+  
+  .action-btn {
+    font-size: 0.8rem;
+    padding: 0.5rem;
+    height: auto;
+  }
+}
+
+@media (max-width: 480px) {
+  .athletes-grid {
+    grid-template-columns: 1fr;
+  }
+  
+  .athlete-header {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.5rem;
+    align-items: center;
+  }
+  
+  .athlete-header h3 {
+    font-size: 1.1rem;
+    flex: 1 1 100%;
+  }
+  
+  .id-badge {
+    position: static;
+    order: 1;
+  }
+  
+  .days-badge {
+    order: 2;
+  }
+  
+  .athlete-actions {
+    grid-template-columns: 1fr;
+  }
+  
+  .action-btn {
+    width: 100%;
+  }
+  
+  .search-filter input {
+    padding: 0.75rem;
+  }
+}
+
+/* Additional mobile optimizations */
+@media (max-width: 400px) {
+  .athlete-essential-info p {
+    display: flex;
+    flex-direction: column;
+    gap: 0.25rem;
+  }
+  
+  .athlete-essential-info strong {
+    margin-bottom: 0.25rem;
+  }
 }
