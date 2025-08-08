@@ -1,195 +1,267 @@
-{% extends "base.html" %}
-
-{% block page_title %}Attendance Tracking{% endblock %}
-{% block content %}
+<!DOCTYPE html>
+<html lang="en">
 <head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>GymPro - Attendance Tracking</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/base.css') }}">
     <link rel="stylesheet" href="{{ url_for('static', filename='css/attendance.css') }}">
-
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
 </head>
-<div class="attendance-container">
-    <!-- Header Section -->
-    <div class="attendance-header">
-        <h1 class="attendance-title">
-            <i class="fas fa-clipboard-check"></i> Attendance Management
-        </h1>
-        <div class="header-actions">
-            <button class="btn btn-primary" id="exportBtn">
-                <i class="fas fa-file-export"></i> Export Report
-            </button>
-        </div>
-    </div>
-
-    <!-- Filter Controls -->
-    <div class="attendance-filters">
-        <form method="get" class="filter-form">
-            <div class="filter-row">
-                <div class="filter-group">
-                    <label for="date" class="form-label">Select Date</label>
-                    <input type="date" name="date" id="date" class="form-control"
-                           value="{{ date_filter }}" max="{{ datetime.now().strftime('%Y-%m-%d') }}">
-                </div>
-                <div class="filter-group">
-                    <label for="search" class="form-label">Search Athletes</label>
-                    <input type="text" name="search" id="search" class="form-control"
-                           placeholder="Name or ID" value="{{ search_query }}">
-                </div>
-                <div class="filter-group d-flex align-items-end">
-                    <button type="submit" class="btn btn-primary">
-                        <i class="fas fa-filter"></i> Apply Filters
-                    </button>
+<body>
+    <div class="app-container">
+        <!-- Sidebar Navigation -->
+        <aside class="sidebar">
+            <div class="sidebar-header">
+                <div class="logo">
+                    <i class="fas fa-dumbbell"></i>
+                    <span>GymPro</span>
                 </div>
             </div>
-        </form>
-    </div>
-
-    <!-- Check In/Out Form -->
-    <div class="check-form">
-        <form method="post" class="check-form-inner">
-            <div class="check-controls">
-                <div class="athlete-select">
-                    <label for="athlete_id" class="form-label">Select Athlete</label>
-                    <select name="athlete_id" id="athlete_id" class="form-control" required>
-                        <option value="">-- Select an athlete --</option>
-                        {% for athlete in active_athletes %}
-                        <option value="{{ athlete.id }}">
-                            {{ athlete.first_name }} {{ athlete.last_name }} (ID: {{ athlete.id }})
-                        </option>
-                        {% endfor %}
-                    </select>
-                </div>
-                <div class="check-buttons">
-                    <button type="submit" name="action" value="check_in" class="btn-check btn-check-in">
-                        <i class="fas fa-sign-in-alt"></i> Check In
-                    </button>
-                    <button type="submit" name="action" value="check_out" class="btn-check btn-check-out">
-                        <i class="fas fa-sign-out-alt"></i> Check Out
-                    </button>
+            <nav class="sidebar-nav">
+                <ul>
+                    <li>
+                        <a href="{{ url_for('home') }}" class="{{ 'active' if request.endpoint == 'home' }}">
+                            <i class="fas fa-tachometer-alt"></i>
+                            <span>Dashboard</span>
+                        </a>
+                    </li>
+                    <li>
+                        <a href="{{ url_for('register') }}" class="{{ 'active' if request.endpoint == 'register' }}">
+                            <i class="fas fa-user-plus"></i>
+                            <span>Register Athlete</span>
+                        </a>
+                    </li>
+                    <li>
+                        <a href="{{ url_for('athletes') }}" class="{{ 'active' if request.endpoint == 'athletes' }}">
+                            <i class="fas fa-users"></i>
+                            <span>View Athletes</span>
+                        </a>
+                    </li>
+                    <li>
+                        <a href="{{ url_for('attendance') }}" class="{{ 'active' if request.endpoint == 'attendance' }}">
+                            <i class="fas fa-clipboard-check"></i>
+                            <span>Attendance</span>
+                        </a>
+                    </li>
+                    <li>
+                        <a href="{{ url_for('history') }}" class="{{ 'active' if request.endpoint == 'history' }}">
+                            <i class="fas fa-history"></i>
+                            <span>Activity History</span>
+                        </a>
+                    </li>
+                </ul>
+            </nav>
+            <div class="sidebar-footer">
+                <div class="user-profile">
+                    <div class="avatar">
+                        <i class="fas fa-user-shield"></i>
+                    </div>
+                    <div class="user-info">
+                        {% if session.get('full_name') %}
+                            <span class="username">{{ session['full_name'] }}</span>
+                            <span class="role">{{ session.get('role', 'Manager') }}</span>
+                        {% else %}
+                            <span class="username">Admin</span>
+                            <span class="role">Manager</span>
+                        {% endif %}
+                    </div>
                 </div>
             </div>
-        </form>
-    </div>
+        </aside>
 
-    <!-- Attendance Records Table -->
-    <div class="table-responsive">
-        <table class="attendance-table">
-            <thead>
-                <tr>
-                    <th>Athlete</th>
-                    <th>ID</th>
-                    <th>Check-In Time</th>
-                    <th>Check-Out Time</th>
-                    <th>Duration</th>
-                    <th>Status</th>
-                </tr>
-            </thead>
-            <tbody>
-                {% if attendance_records %}
-                    {% for record in attendance_records %}
-                    <tr {% if not record.check_out_time %}class="current-session"{% endif %}>
-                        <td>
-                            <strong>{{ record.first_name }} {{ record.last_name }}</strong>
-                        </td>
-                        <td>{{ record.athlete_id }}</td>
-                        <td>
-                            {{ record.check_in_time }}
-                        </td>
-                        <td>
-                            {% if record.check_out_time %}
-                                {{ record.check_out_time }}
+        <!-- Main Content -->
+        <main class="main-content">
+            <header class="main-header">
+                <div class="header-left">
+                    <button class="sidebar-toggle" id="sidebarToggle">
+                        <span class="hamburger"></span>
+                    </button>
+                    <h1>Attendance Tracking</h1>
+                </div>
+            </header>
+
+            <div class="content-container">
+                <!-- Stats Cards Section -->
+                <div class="stats-grid">
+                    <div class="stat-card present-card">
+                        <div class="stat-content">
+                            <div class="stat-icon">
+                                <i class="fas fa-user-check"></i>
+                            </div>
+                            <div class="stat-text">
+                                <span class="stat-number">{{ stats.present }}</span>
+                                <span class="stat-label">Present Today</span>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="stat-card active-card">
+                        <div class="stat-content">
+                            <div class="stat-icon">
+                                <i class="fas fa-running"></i>
+                            </div>
+                            <div class="stat-text">
+                                <span class="stat-number">{{ stats.active }}</span>
+                                <span class="stat-label">Active Sessions</span>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="stat-card absent-card">
+                        <div class="stat-content">
+                            <div class="stat-icon">
+                                <i class="fas fa-user-slash"></i>
+                            </div>
+                            <div class="stat-text">
+                                <span class="stat-number">{{ stats.absent }}</span>
+                                <span class="stat-label">Absent Today</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Attendance Filter Section -->
+                <div class="filter-section">
+                    <form method="get" class="attendance-filter">
+                        <div class="filter-row">
+                            <div class="search-container">
+                                <label for="athlete-search" class="search-label">
+                                    <i class="fas fa-search"></i>
+                                </label>
+                                <input type="text" id="athlete-search" name="search" class="search-input" 
+                                       placeholder="Search by name or ID" value="{{ search_query }}">
+                            </div>
+                            
+                            <div class="date-container">
+                                <label for="attendance-date" class="date-label">
+                                    <i class="fas fa-calendar-day"></i>
+                                </label>
+                                    <input type="date" id="attendance-date" name="date" class="date-input" 
+                                        value="{{ date_filter }}" max="{{ now.strftime('%Y-%m-%d') }}">
+                            </div>
+                            
+                            <button type="submit" class="filter-button">
+                                <i class="fas fa-filter"></i> Apply Filters
+                            </button>
+                        </div>
+                    </form>
+                </div>
+
+                <!-- Check In/Out Form -->
+                <div class="check-form-container">
+                    <form method="post" class="check-form">
+                        <div class="athlete-select-container">
+                            <label for="athlete-select" class="select-label">Select Athlete</label>
+                            <div class="custom-select">
+                                <select id="athlete-select" name="athlete_id" class="athlete-select" required>
+                                    <option value="">-- Select an athlete --</option>
+                                    {% for athlete in active_athletes %}
+                                    <option value="{{ athlete.id }}">
+                                        {{ athlete.first_name }} {{ athlete.last_name }} (ID: {{ athlete.id }})
+                                    </option>
+                                    {% endfor %}
+                                </select>
+                                <span class="select-arrow"><i class="fas fa-chevron-down"></i></span>
+                            </div>
+                        </div>
+                        
+                        <div class="check-buttons">
+                            <button type="submit" name="action" value="check_in" class="check-in-button">
+                                <i class="fas fa-sign-in-alt"></i> Check In
+                            </button>
+                            <button type="submit" name="action" value="check_out" class="check-out-button">
+                                <i class="fas fa-sign-out-alt"></i> Check Out
+                            </button>
+                        </div>
+                    </form>
+                </div>
+
+                <!-- Attendance Table -->
+                <div class="attendance-table-container">
+                    <table class="attendance-table">
+                        <thead>
+                            <tr>
+                                <th>Athlete</th>
+                                <th>ID</th>
+                                <th>Check-In Time</th>
+                                <th>Check-Out Time</th>
+                                <th>Duration</th>
+                                <th>Status</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for record in attendance_data %}
+                            <tr class="{% if record.status == 'active' %}active-session{% endif %}">
+                                <td>{{ record.name }}</td>
+                                <td>{{ record.athlete_id }}</td>
+                                <td>{{ record.check_in or '' }}</td>
+                                <td>
+                                    {% if record.check_out %}
+                                        {{ record.check_out }}
+                                    {% elif record.status == 'active' %}
+                                        <span class="active-badge">Active</span>
+                                    {% endif %}
+                                </td>
+                                <td>
+                                    {% if record.duration %}
+                                        <span class="duration-badge">{{ record.duration }}</span>
+                                    {% endif %}
+                                </td>
+                                <td>
+                                    {% if record.status == 'present' %}
+                                        <span class="status-badge completed">
+                                            <i class="fas fa-check-circle"></i> Present
+                                        </span>
+                                    {% elif record.status == 'active' %}
+                                        <span class="status-badge in-progress">
+                                            <i class="fas fa-running"></i> In Progress
+                                        </span>
+                                    {% else %}
+                                        <span class="status-badge absent">
+                                            <i class="fas fa-user-slash"></i> Absent
+                                        </span>
+                                    {% endif %}
+                                </td>
+                            </tr>
                             {% else %}
-                                <span class="badge badge-warning">Active</span>
-                            {% endif %}
-                        </td>
-                        <td>
-                            {% if record.check_out_time %}
-                                <span class="duration-badge">
-                                    <i class="fas fa-clock"></i> 
-                                    {{ record.check_out_time|time_diff(record.check_in_time) }}
-                                </span>
-                            {% endif %}
-                        </td>
-                        <td>
-                            {% if record.check_out_time %}
-                                <span class="badge-present">
-                                    <i class="fas fa-check-circle"></i> Completed
-                                </span>
-                            {% else %}
-                                <span class="badge-absent">
-                                    <i class="fas fa-running"></i> In Progress
-                                </span>
-                            {% endif %}
-                        </td>
-                    </tr>
-                    {% endfor %}
-                {% else %}
-                    <tr>
-                        <td colspan="6" class="empty-state">
-                            <i class="fas fa-clipboard-list"></i>
-                            <h3>No attendance records found</h3>
-                            <p>No check-ins have been recorded for this date</p>
-                        </td>
-                    </tr>
-                {% endif %}
-            </tbody>
-        </table>
+                            <tr>
+                                <td colspan="6" class="empty-state">
+                                    <i class="fas fa-clipboard-list"></i>
+                                    <h3>No attendance records found</h3>
+                                    <p>No check-ins have been recorded for this date</p>
+                                </td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+
+            <footer class="main-footer">
+                <p>&copy; {{ now.year }} GymPro Management System. All rights reserved.</p>
+            </footer>
+        </main>
     </div>
 
-    <!-- Summary Statistics -->
-    <div class="stats-summary">
-        <div class="stats-card">
-            <div class="stats-icon present">
-                <i class="fas fa-user-check"></i>
-            </div>
-            <div class="stats-info">
-                <h4>{{ present_count or 0 }}</h4>
-                <p>Present Today</p>
-            </div>
-        </div>
-        <div class="stats-card">
-            <div class="stats-icon active">
-                <i class="fas fa-running"></i>
-            </div>
-            <div class="stats-info">
-                <h4>{{ active_sessions or 0 }}</h4>
-                <p>Active Sessions</p>
-            </div>
-        </div>
-        <div class="stats-card">
-            <div class="stats-icon absent">
-                <i class="fas fa-user-slash"></i>
-            </div>
-            <div class="stats-info">
-                <h4>{{ absent_count or 0 }}</h4>
-                <p>Absent Today</p>
-            </div>
-        </div>
-    </div>
-</div>
+    <script src="{{ url_for('static', filename='js/script.js') }}"></script>
+    <script src="{{ url_for('static', filename='js/attendance.js') }}"></script>
+    <script>
+        // Set today's date as default if not set
+        document.addEventListener('DOMContentLoaded', function() {
+            const dateInput = document.getElementById('attendance-date');
+            if (!dateInput.value) {
+                dateInput.valueAsDate = new Date();
+            }
 
-<script>
-document.addEventListener('DOMContentLoaded', function() {
-    // Set today's date as default if not set
-    if (!document.getElementById('date').value) {
-        const today = new Date().toISOString().split('T')[0];
-        document.getElementById('date').value = today;
-    }
-    
-    // Export button functionality
-    document.getElementById('exportBtn').addEventListener('click', function() {
-        const date = document.getElementById('date').value;
-        window.location.href = `/export/attendance?date=${date}`;
-    });
-    
-    // Highlight current day in calendar
-    const today = new Date().toISOString().split('T')[0];
-    if (document.getElementById('date').value === today) {
-        const title = document.querySelector('.attendance-title');
-        const badge = document.createElement('span');
-        badge.className = 'badge-present';
-        badge.textContent = 'Today';
-        title.appendChild(document.createTextNode(' '));
-        title.appendChild(badge);
-    }
-});
-</script>
-{% endblock %}
+            // Highlight today's date in the table
+            const today = new Date().toISOString().split('T')[0];
+            if (dateInput.value === today) {
+                document.querySelector('h1').innerHTML += 
+                    ' <span class="today-badge">Today</span>';
+            }
+        });
+    </script>
+</body>
+</html>

@@ -40,15 +40,15 @@
                         </a>
                     </li>
                     <li>
-                        <a href="{{ url_for('history') }}" class="{{ 'active' if request.endpoint == 'history' }}">
-                            <i class="fas fa-history"></i>
-                            <span>Activity History</span>
+                        <a href="{{ url_for('attendance') }}" class="{{ 'active' if request.endpoint == 'attendance' }}">
+                            <i class="fas fa-clipboard-check"></i>
+                            <span>Attendance</span>
                         </a>
                     </li>
                     <li>
-                        <a href="{{ url_for('attendance') }}" class="{{ 'active' if request.endpoint == 'attendance' }}">
-                            <i class="fas fa-clipboard-check"></i>
-                            <span>Attendance Tracking</span>
+                        <a href="{{ url_for('history') }}" class="{{ 'active' if request.endpoint == 'history' }}">
+                            <i class="fas fa-history"></i>
+                            <span>Activity History</span>
                         </a>
                     </li>
                 </ul>
