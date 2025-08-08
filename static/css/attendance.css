@@ -351,7 +351,130 @@
 }
 
 @media (max-width: 768px) {
+    /* Adjust header for mobile */
+    .main-header h1 {
+        font-size: 1.5rem;
+    }
+    
+    /* Stats cards adjustments */
+    .stat-card {
+        padding: 1rem;
+    }
+    
+    .stat-number {
+        font-size: 1.5rem;
+    }
+    
+    /* Check-in/out form mobile layout */
+    .check-buttons {
+        flex-direction: column;
+        gap: 0.5rem;
+    }
+    
+    .check-in-button, 
+    .check-out-button {
+        width: 100%;
+        padding: 0.75rem;
+    }
+    
+    /* Table adjustments for mobile */
+    .attendance-table-container {
+        padding: 0.5rem;
+        overflow-x: auto;
+    }
+    
     .attendance-table {
-        min-width: 700px;
+        min-width: auto;
+        width: 100%;
+    }
+    
+    .attendance-table th,
+    .attendance-table td {
+        padding: 0.75rem 0.5rem;
+        font-size: 0.875rem;
+    }
+    
+    /* Hide some columns on mobile */
+    .attendance-table th:nth-child(2),
+    .attendance-table td:nth-child(2),
+    .attendance-table th:nth-child(3),
+    .attendance-table td:nth-child(3),
+    .attendance-table th:nth-child(4),
+    .attendance-table td:nth-child(4),
+    .attendance-table th:nth-child(5),
+    .attendance-table td:nth-child(5) {
+        display: none;
+    }
+    
+    /* Make status badge more compact */
+    .status-badge {
+        padding: 0.25rem 0.5rem;
+        font-size: 0.75rem;
+    }
+    
+    .status-badge i {
+        font-size: 0.75rem;
+    }
+    
+    /* Adjust empty state */
+    .empty-state {
+        padding: 1rem 0.5rem;
+    }
+    
+    .empty-state i {
+        font-size: 1.5rem;
+    }
+    
+    .empty-state h3 {
+        font-size: 1rem;
+    }
+    
+    .empty-state p {
+        font-size: 0.875rem;
+    }
+}
+
+@media (max-width: 480px) {
+    /* Further adjustments for very small screens */
+    .stat-content {
+        gap: 0.75rem;
+    }
+    
+    .stat-icon {
+        width: 2.5rem;
+        height: 2.5rem;
+        font-size: 1.25rem;
+    }
+    
+    .stat-number {
+        font-size: 1.25rem;
+    }
+    
+    .stat-label {
+        font-size: 0.75rem;
+    }
+    
+    /* Form inputs */
+    .search-input, 
+    .date-input,
+    .athlete-select {
+        padding: 0.5rem 0.75rem 0.5rem 2rem;
+        font-size: 0.875rem;
+    }
+    
+    .search-label, 
+    .date-label {
+        left: 0.75rem;
+    }
+    
+    /* Table adjustments */
+    .attendance-table th,
+    .attendance-table td {
+        padding: 0.5rem;
+    }
+    
+    /* Make name column take more space */
+    .attendance-table td:first-child {
+        min-width: 120px;
     }
 }
