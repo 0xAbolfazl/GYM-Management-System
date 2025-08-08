@@ -4,15 +4,29 @@ from datetime import datetime, timedelta
 import random
 from functools import wraps
 import hashlib
+from datetime import datetime
+from time import sleep
 
 app = Flask(__name__)
 app.secret_key = 'gymsecret'  # Change this to a secure secret key
 
 # Database Helper Functions
 def get_db_connection():
-    conn = sqlite3.connect('database.db')
+    conn = sqlite3.connect('database.db', timeout=30) 
     conn.row_factory = sqlite3.Row
+    conn.execute('PRAGMA journal_mode=WAL')
+    conn.execute('PRAGMA busy_timeout=30000')  
     return conn
+
+def execute_with_retry(conn, query, params, max_retries=3):
+    for attempt in range(max_retries):
+        try:
+            return conn.execute(query, params)
+        except sqlite3.OperationalError as e:
+            if "database is locked" in str(e) and attempt < max_retries - 1:
+                sleep(0.1 + random() * 0.1)  
+                continue
+            raise
 
 def generate_unique_id():
     conn = get_db_connection()
@@ -33,31 +47,169 @@ def log_activity(action, details, athlete_id=None):
 def init_db():
     conn = get_db_connection()
     
-    # Athletes table
-    conn.execute('''CREATE TABLE IF NOT EXISTS athletes
-                 (id INTEGER PRIMARY KEY,
-                  first_name TEXT NOT NULL,
-                  last_name TEXT NOT NULL,
-                  gender TEXT NOT NULL,
-                  phone TEXT NOT NULL,
-                  emergency_phone TEXT,
-                  father_name TEXT,
-                  birth_date TEXT,
-                  registration_date TEXT NOT NULL,
-                  start_date TEXT NOT NULL,
-                  days_remaining INTEGER NOT NULL)''')
-    
-    # Activity log table
-    conn.execute('''CREATE TABLE IF NOT EXISTS activity_log
-                 (id INTEGER PRIMARY KEY AUTOINCREMENT,
-                  timestamp TEXT NOT NULL,
-                  action TEXT NOT NULL,
-                  details TEXT NOT NULL,
-                  athlete_id INTEGER,
-                  FOREIGN KEY(athlete_id) REFERENCES athletes(id))''')
-    
-    conn.commit()
-    conn.close()
+    try:
+        # Athletes table
+        conn.execute('''CREATE TABLE IF NOT EXISTS athletes
+                    (id INTEGER PRIMARY KEY,
+                    first_name TEXT NOT NULL,
+                    last_name TEXT NOT NULL,
+                    gender TEXT NOT NULL,
+                    phone TEXT NOT NULL,
+                    emergency_phone TEXT,
+                    father_name TEXT,
+                    birth_date TEXT,
+                    registration_date TEXT NOT NULL,
+                    start_date TEXT NOT NULL,
+                    days_remaining INTEGER NOT NULL)''')
+        
+        # Activity log table
+        conn.execute('''CREATE TABLE IF NOT EXISTS activity_log
+                    (id INTEGER PRIMARY KEY AUTOINCREMENT,
+                    timestamp TEXT NOT NULL,
+                    action TEXT NOT NULL,
+                    details TEXT NOT NULL,
+                    athlete_id INTEGER,
+                    FOREIGN KEY(athlete_id) REFERENCES athletes(id))''')
+        
+        # Attendance table
+        conn.execute('''CREATE TABLE IF NOT EXISTS attendance
+                     (id INTEGER PRIMARY KEY AUTOINCREMENT,
+                      athlete_id INTEGER NOT NULL,
+                      check_in_time TEXT NOT NULL,
+                      check_out_time TEXT,
+                      date TEXT NOT NULL,
+                      FOREIGN KEY(athlete_id) REFERENCES athletes(id))''')
+        
+        # create index 
+        conn.execute('''
+            CREATE INDEX IF NOT EXISTS idx_attendance_athlete_date 
+            ON attendance(athlete_id, date)
+        ''')
+        conn.execute('''
+            CREATE INDEX IF NOT EXISTS idx_attendance_check_out 
+            ON attendance(check_out_time)
+        ''')
+        
+        conn.commit()
+    finally:
+        conn.close()
+
+def get_today_attendance_stats(gender, date_filter):
+    conn = get_db_connection()
+    try:
+       # Number of attendees on selected date
+        present = execute_with_retry(conn, '''
+            SELECT COUNT(DISTINCT a.id) 
+            FROM attendance att
+            JOIN athletes a ON att.athlete_id = a.id
+            WHERE att.date = ? AND a.gender = ?
+        ''', (date_filter, gender)).fetchone()[0]
+        
+        # Active sessions (checked in but not checked out)
+        active = execute_with_retry(conn, '''
+            SELECT COUNT(DISTINCT a.id) 
+            FROM attendance att
+            JOIN athletes a ON att.athlete_id = a.id
+            WHERE att.date = ? AND a.gender = ? AND att.check_out_time IS NULL
+        ''', (date_filter, gender)).fetchone()[0]
+        
+      
+        total_active = execute_with_retry(conn, '''
+            SELECT COUNT(*) 
+            FROM athletes 
+            WHERE gender = ? AND days_remaining > 0
+        ''', (gender,)).fetchone()[0]
+        
+        absent = total_active - present
+        
+        return {
+            'present': present,
+            'active': active,
+            'absent': absent
+        }
+    finally:
+        conn.close()
+
+def get_attendance_records(gender, date_filter, search_query=None):
+    conn = get_db_connection()
+    try:
+        query = '''
+            SELECT 
+                a.id as athlete_id,
+                a.first_name,
+                a.last_name,
+                att.check_in_time,
+                att.check_out_time,
+                att.date
+            FROM athletes a
+            LEFT JOIN (
+                SELECT athlete_id, MAX(id) as max_id
+                FROM attendance
+                WHERE date = ?
+                GROUP BY athlete_id
+            ) latest ON a.id = latest.athlete_id
+            LEFT JOIN attendance att ON att.id = latest.max_id
+            WHERE a.gender = ? AND a.days_remaining > 0
+        '''
+        
+        params = [date_filter, gender]
+        
+        if search_query:
+            query += '''
+                AND (a.first_name LIKE ? OR 
+                     a.last_name LIKE ? OR 
+                     a.id = ?)
+            '''
+            search_param = f"%{search_query}%"
+            params.extend([search_param, search_param, search_query])
+        
+        query += ' ORDER BY a.first_name, a.last_name'
+        
+        records = execute_with_retry(conn, query, params).fetchall()
+        
+        # Processing records for display in the format
+        attendance_data = []
+        for record in records:
+            status = "absent"
+            duration = None
+            
+            if record['check_in_time']:
+                if record['check_out_time']:
+                    status = "present"
+                    # Calculate duration
+                    check_in = datetime.strptime(record['check_in_time'], '%Y-%m-%d %H:%M:%S')
+                    check_out = datetime.strptime(record['check_out_time'], '%Y-%m-%d %H:%M:%S')
+                    delta = check_out - check_in
+                    hours, remainder = divmod(delta.seconds, 3600)
+                    minutes, _ = divmod(remainder, 60)
+                    duration = f"{hours}h {minutes}m"
+                else:
+                    status = "active"
+            
+            attendance_data.append({
+                'athlete_id': record['athlete_id'],
+                'name': f"{record['first_name']} {record['last_name']}",
+                'check_in': record['check_in_time'],
+                'check_out': record['check_out_time'],
+                'duration': duration,
+                'status': status
+            })
+        
+        return attendance_data
+    finally:
+        conn.close()
+
+def get_active_athletes(gender):
+    conn = get_db_connection()
+    try:
+        return execute_with_retry(conn, '''
+            SELECT id, first_name, last_name 
+            FROM athletes 
+            WHERE gender = ? AND days_remaining > 0
+            ORDER BY first_name, last_name
+        ''', (gender,)).fetchall()
+    finally:
+        conn.close()
 
 def login_required(f):
     @wraps(f)
@@ -393,6 +545,115 @@ def history():
     
     return render_template('history.html', activities=activities, 
                          search_query=search_query, action_type=action_type)
+
+
+@app.route('/attendance', methods=['GET', 'POST'])
+@login_required
+def attendance():
+    gender = session['gender']
+    today = datetime.now().strftime('%Y-%m-%d')
+    
+    if request.method == 'POST':
+        athlete_id = request.form.get('athlete_id')
+        action = request.form.get('action')
+        
+        if not athlete_id or not action:
+            flash('Invalid request', 'danger')
+            return redirect(url_for('attendance'))
+
+        conn = None
+        try:
+            conn = get_db_connection()
+            current_time = datetime.now().strftime('%Y-%m-%d %H:%M:%S')
+            # Checking the existence of the athlete and whether she is active
+            athlete = execute_with_retry(conn, '''
+                SELECT 1 FROM athletes 
+                WHERE id = ? AND gender = ? AND days_remaining > 0
+                LIMIT 1
+            ''', (athlete_id, gender)).fetchone()
+            
+            if not athlete:
+                flash('Athlete not found or inactive!', 'danger')
+                return redirect(url_for('attendance'))
+
+            if action == 'check_in':
+                # Check if the athlete has already checked in today
+                existing = execute_with_retry(conn, '''
+                    SELECT 1 FROM attendance 
+                    WHERE athlete_id = ? AND date = ? AND check_out_time IS NULL
+                    LIMIT 1
+                ''', (athlete_id, today)).fetchone()
+                
+                if existing:
+                    flash('Athlete is already checked in today!', 'warning')
+                else:
+                    execute_with_retry(conn, '''
+                        INSERT INTO attendance (athlete_id, check_in_time, date)
+                        VALUES (?, ?, ?)
+                    ''', (athlete_id, current_time, today))
+                    conn.commit()
+                    flash('Check-in recorded successfully!', 'success')
+                    log_activity("CHECK_IN", f"Athlete {athlete_id} checked in", athlete_id)
+
+            elif action == 'check_out':
+                # Find the last check-in without checking out
+                record = execute_with_retry(conn, '''
+                    SELECT id FROM attendance 
+                    WHERE athlete_id = ? AND date = ? AND check_out_time IS NULL
+                    ORDER BY check_in_time DESC LIMIT 1
+                ''', (athlete_id, today)).fetchone()
+                
+                if not record:
+                    flash('No active check-in found for this athlete today!', 'warning')
+                else:
+                    execute_with_retry(conn, '''
+                        UPDATE attendance 
+                        SET check_out_time = ? 
+                        WHERE id = ?
+                    ''', (current_time, record['id']))
+                    conn.commit()
+                    flash('Check-out recorded successfully!', 'success')
+                    log_activity("CHECK_OUT", f"Athlete {athlete_id} checked out", athlete_id)
+
+        except sqlite3.OperationalError as e:
+            if "database is locked" in str(e):
+                flash('System is busy. Please try again in a moment.', 'warning')
+            else:
+                flash('Database error occurred', 'danger')
+                app.logger.error(f"Database error: {str(e)}")
+            if conn:
+                conn.rollback()
+        
+        except Exception as e:
+            flash('An error occurred while processing your request', 'danger')
+            app.logger.error(f"Error in attendance route: {str(e)}")
+            if conn:
+                conn.rollback()
+        
+        finally:
+            if conn:
+                conn.close()
+        
+        return redirect(url_for('attendance'))
+    
+    # GET request handling
+    date_filter = request.args.get('date', today)
+    search_query = request.args.get('search', '').strip() or None
+    
+    stats = get_today_attendance_stats(gender, date_filter)
+    
+    records = get_attendance_records(gender, date_filter, search_query)
+    
+    active_athletes = get_active_athletes(gender)
+    
+    return render_template('attendance.html',
+                         stats=stats,
+                         attendance_data=records,
+                         active_athletes=active_athletes,
+                         date_filter=date_filter,
+                         search_query=search_query or '',
+                         datetime=datetime,
+                         now=datetime.now())
 
 if __name__ == '__main__':
     app.run(host='0.0.0.0', port=5000, debug=True)
