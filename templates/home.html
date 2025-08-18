@@ -33,6 +33,50 @@
         </div>
     </div>
     
+    <!-- New Expiring Soon Section -->
+    <div class="expiring-section">
+        <h3>
+            <span class="expiring-icon">⏳</span>
+            Expiring in less than 48 hours
+            <span class="expiring-count">{{ expiring_48h_count }}</span>
+        </h3>
+        
+        {% if expiring_48h %}
+        <div class="expiring-table-container">
+            <table class="expiring-table">
+                <thead>
+                    <tr>
+                        <th>Full Name</th>
+                        <th>Start Date</th>
+                        <th>End Date</th>
+                        <th>Days</th>
+                        <th>Status</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for athlete in expiring_48h %}
+                    <tr>
+                        <td>{{ athlete.first_name }} {{ athlete.last_name }}</td>
+                        <td>{{ athlete.start_date }}</td>
+                        <td>{{ athlete.end_date }}</td>
+                        <td>{{ athlete.original_days }} days</td>
+                        <td>
+                            <span class="status-badge {% if athlete.days_remaining <= 0 %}expired{% else %}warning{% endif %}">
+                                {% if athlete.days_remaining <= 0 %}Expired{% else %}Expiring{% endif %}
+                            </span>
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+        {% else %}
+        <div class="no-expiring">
+            No memberships expiring in the next 48 hours
+        </div>
+        {% endif %}
+    </div>
+    
     <div class="quick-actions">
         <h3>Quick Actions</h3>
         <div class="action-buttons">

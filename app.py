@@ -260,6 +260,29 @@ def login():
 def home():
     conn = get_db_connection()
     gender = session['gender']
+    
+    # Get athletes expiring in less than 48 hours
+    expiring_48h = []
+    athletes = conn.execute(
+        "SELECT id, first_name, last_name, start_date, days_remaining FROM athletes WHERE gender = ? AND days_remaining > 0",
+        (gender,)
+    ).fetchall()
+    
+    for athlete in athletes:
+        start_date = datetime.strptime(athlete['start_date'], '%Y-%m-%d')
+        end_date = start_date + timedelta(days=athlete['days_remaining'])
+        remaining_days = (end_date - datetime.now()).days
+        
+        if 0 <= remaining_days <= 2:  # Less than 48 hours
+            expiring_48h.append({
+                'first_name': athlete['first_name'],
+                'last_name': athlete['last_name'],
+                'start_date': athlete['start_date'],
+                'end_date': end_date.strftime('%Y-%m-%d'),
+                'days_remaining': remaining_days,
+                'original_days': athlete['days_remaining']
+            })
+    
     stats = {
         'total_athletes': conn.execute("SELECT COUNT(*) FROM athletes WHERE gender = ?", (gender,)).fetchone()[0],
         'active_athletes': conn.execute("SELECT COUNT(*) FROM athletes WHERE gender = ? AND days_remaining > 0", (gender,)).fetchone()[0],
@@ -267,7 +290,9 @@ def home():
         'recent_registrations': conn.execute(
             'SELECT COUNT(*) FROM athletes WHERE gender = ? AND registration_date > ?',
             (gender, (datetime.now() - timedelta(days=7)).strftime('%Y-%m-%d %H:%M:%S'),)
-        ).fetchone()[0]
+        ).fetchone()[0],
+        'expiring_48h': expiring_48h,
+        'expiring_48h_count': len(expiring_48h)
     }
     
     conn.close()
