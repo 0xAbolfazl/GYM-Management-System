@@ -216,16 +216,98 @@
     font-style: italic;
 }
 
+/* ===== EXPIRING SECTION - MOBILE RESPONSIVE ===== */
+.expiring-section {
+    background: white;
+    border-radius: var(--radius-lg);
+    padding: var(--spacing-lg);
+    box-shadow: var(--shadow-md);
+    margin-bottom: var(--spacing-xl);
+}
+
+.expiring-table-container {
+    overflow-x: auto;
+}
+
+.expiring-table {
+    width: 100%;
+    border-collapse: collapse;
+    margin-top: var(--spacing-md);
+}
+
+.expiring-table th {
+    background: var(--light-color);
+    padding: var(--spacing-sm) var(--spacing-md);
+    text-align: left;
+    font-weight: 500;
+    color: var(--dark-color);
+}
+
+.expiring-table td {
+    padding: var(--spacing-sm) var(--spacing-md);
+    border-bottom: 1px solid var(--border-color);
+}
+
+.expiring-table tr:last-child td {
+    border-bottom: none;
+}
+
+.expiring-table tr:hover {
+    background: var(--light-color);
+}
+
+.status-badge {
+    display: inline-block;
+    padding: 0.25rem 0.75rem;
+    border-radius: 2rem;
+    font-size: 0.85rem;
+    font-weight: 500;
+}
+
+.status-badge.warning {
+    background: rgba(255, 165, 0, 0.1);
+    color: var(--warning-color);
+}
+
+.status-badge.expired {
+    background: rgba(255, 0, 0, 0.1);
+    color: var(--danger-color);
+}
+
 /* ========== RESPONSIVE ADJUSTMENTS ========== */
 @media (max-width: 768px) {
-    .expiring-table th,
-    .expiring-table td {
-        padding: var(--spacing-sm);
-        font-size: 0.9rem;
+    /* Hide End Date and Original Days columns on mobile */
+    .expiring-table th:nth-child(3),
+    .expiring-table td:nth-child(3),
+    .expiring-table th:nth-child(2),
+    .expiring-table td:nth-child(2) {
+        display: none;
     }
     
-    .expiring-section h3 {
-        font-size: 1.1rem;
+    /* Show only Name (1), Days Remaining (2), and Status (5) */
+    .expiring-table th:nth-child(2)::after {
+        content: " Remaining";
+    }
+    
+    .expiring-table td:nth-child(2) {
+        font-weight: 600;
+        color: var(--warning-color);
+    }
+    
+    /* Adjust column widths */
+    .expiring-table th:nth-child(1),
+    .expiring-table td:nth-child(1) {
+        width: 40%;
+    }
+    
+    .expiring-table th:nth-child(4),
+    .expiring-table td:nth-child(4) {
+        width: 30%;
+    }
+    
+    .expiring-table th:nth-child(5),
+    .expiring-table td:nth-child(5) {
+        width: 30%;
     }
 }
 
@@ -234,8 +316,23 @@
         font-size: 0.85rem;
     }
     
+    .expiring-table th,
+    .expiring-table td {
+        padding: 0.5rem;
+    }
+    
     .status-badge {
-        font-size: 0.8rem;
-        padding: 0.2rem 0.6rem;
+        font-size: 0.75rem;
+        padding: 0.15rem 0.5rem;
+    }
+    
+    /* Make "Days Remaining" more compact on very small screens */
+    .expiring-table th:nth-child(4)::after {
+        content: "";
+    }
+    
+    .expiring-table td:nth-child(4)::before {
+        content: "";
+        font-weight: normal;
     }
 }
