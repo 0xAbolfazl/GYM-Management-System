@@ -20,12 +20,14 @@
                 </div>
                 <div>
                     <span style="font-size: 0.875rem; color: var(--gray-color);">End Date:</span>
-                    <span style="font-weight: 500;">{{ athlete.end_date }}</span>
+                    <span style="font-weight: 500;" class="gregorian-date" data-date="{{ athlete.end_date }}">
+                        {{ athlete.end_date }}
+                    </span>
                 </div>
             </div>
         </div>
 
-        <form method="POST" action="{{ url_for('renew_athlete', athlete_id=athlete.id) }}">
+        <form method="POST" action="{{ url_for('renew_athlete', athlete_id=athlete.id) }}" onsubmit="return confirmRenewal()">
             <div class="form-group">
                 <label for="days" class="form-label">Additional Days</label>
                 <div class="days-options">
@@ -40,6 +42,7 @@
             <div class="form-group">
                 <label for="new_end_date" class="form-label">New End Date</label>
                 <input type="text" id="new_end_date" class="form-control" readonly>
+                <input type="hidden" id="new_end_date_gregorian" name="new_end_date">
             </div>
 
             <div class="form-group" style="margin-top: 1.5rem; display: flex; gap: 1rem;">
@@ -54,47 +57,71 @@
     </div>
 </div>
 
-
 <script>
-    // Calculate new end date
-    function calculateNewEndDate(days) {
-        if (days > 0) {
-            const endDate = new Date('{{ athlete.end_date }}');
-            endDate.setDate(endDate.getDate() + days);
-            document.getElementById('new_end_date').value = endDate.toLocaleDateString('en-US', { 
-                year: 'numeric', 
-                month: 'long', 
-                day: 'numeric' 
-            });
-        } else {
-            document.getElementById('new_end_date').value = '';
+    document.addEventListener('DOMContentLoaded', function() {
+        // Convert current end date to Shamsi
+        const endDateElement = document.querySelector('.gregorian-date');
+        if (endDateElement) {
+            const originalDate = endDateElement.getAttribute('data-date');
+            if (originalDate) {
+                const convertedDate = gregorianToJalali(originalDate);
+                if (convertedDate && convertedDate !== '---') {
+                    endDateElement.textContent = convertedDate;
+                    endDateElement.setAttribute('title', "Gregorian: " + originalDate);
+                }
+            }
         }
-    }
 
-    // Day option buttons
-    document.querySelectorAll('.day-option').forEach(button => {
-        button.addEventListener('click', function() {
-            const days = parseInt(this.getAttribute('data-days'));
-            document.getElementById('days').value = days;
+        // Calculate new end date
+        function calculateNewEndDate(days) {
+            if (days > 0) {
+                const endDate = new Date('{{ athlete.end_date }}');
+                endDate.setDate(endDate.getDate() + days);
+                
+                // Format Gregorian date for backend (YYYY-MM-DD)
+                const gregorianDate = endDate.toISOString().split('T')[0];
+                document.getElementById('new_end_date_gregorian').value = gregorianDate;
+                
+                // Convert to Shamsi for display
+                const shamsiDate = gregorianToJalali(gregorianDate);
+                document.getElementById('new_end_date').value = shamsiDate;
+            } else {
+                document.getElementById('new_end_date').value = '';
+                document.getElementById('new_end_date_gregorian').value = '';
+            }
+        }
+
+        // Day option buttons
+        document.querySelectorAll('.day-option').forEach(button => {
+            button.addEventListener('click', function() {
+                const days = parseInt(this.getAttribute('data-days'));
+                document.getElementById('days').value = days;
+                calculateNewEndDate(days);
+                
+                // Update active button
+                document.querySelectorAll('.day-option').forEach(btn => {
+                    btn.classList.remove('active');
+                });
+                this.classList.add('active');
+            });
+        });
+
+        // Manual input
+        document.getElementById('days').addEventListener('input', function() {
+            const days = parseInt(this.value) || 0;
             calculateNewEndDate(days);
             
-            // Update active button
+            // Remove active class from all buttons
             document.querySelectorAll('.day-option').forEach(btn => {
                 btn.classList.remove('active');
             });
-            this.classList.add('active');
         });
-    });
 
-    // Manual input
-    document.getElementById('days').addEventListener('input', function() {
-        const days = parseInt(this.value) || 0;
-        calculateNewEndDate(days);
-        
-        // Remove active class from all buttons
-        document.querySelectorAll('.day-option').forEach(btn => {
-            btn.classList.remove('active');
-        });
+        // Initial calculation
+        const initialDays = parseInt(document.getElementById('days').value) || 0;
+        if (initialDays > 0) {
+            calculateNewEndDate(initialDays);
+        }
     });
 
     // Confirmation
@@ -106,10 +133,5 @@
         }
         return confirm(`Are you sure you want to renew membership for ${days} additional days?`);
     }
-
-    // Initial calculation
-    window.addEventListener('load', function() {
-        calculateNewEndDate(parseInt(document.getElementById('days').value) || 0);
-    });
 </script>
 {% endblock %}

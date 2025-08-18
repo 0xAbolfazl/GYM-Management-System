@@ -2,7 +2,7 @@
 
 {% block content %}
 <head>
-        <link rel="stylesheet" href="{{ url_for('static', filename='css/history.css') }}">
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/history.css') }}">
 </head>
 <section class="history-section">
     <h2>Activity History</h2>
@@ -24,7 +24,7 @@
         <div class="activity-card">
             <div class="activity-header">
                 <span class="activity-action {{ activity.action|lower }}">{{ activity.action }}</span>
-                <span class="activity-timestamp">{{ activity.timestamp }}</span>
+                <span class="activity-timestamp gregorian-date">{{ activity.timestamp }}</span>
             </div>
             <div class="activity-details">
                 <p>{{ activity.details }}</p>

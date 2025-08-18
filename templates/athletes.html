@@ -2,7 +2,7 @@
 
 {% block content %}
 <head>
-        <link rel="stylesheet" href="{{ url_for('static', filename='css/athletes.css') }}">
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/athletes.css') }}">
 </head>
 <section class="athletes-list">
     <h2>Registered Athletes</h2>
@@ -28,9 +28,17 @@
             <div class="athlete-essential-info">
                 <p><strong>Full Name:</strong> {{ athlete.first_name }} {{ athlete.last_name }}</p>
                 <p><strong>Phone:</strong> {{ athlete.phone }}</p>
-                <p><strong>Registered:</strong> {{ athlete.registration_date.split(' ')[0] }}</p>
-                <p><strong>End Date:</strong> {{ (datetime.strptime(athlete.start_date, '%Y-%m-%d') + timedelta(days=athlete.original_days)).strftime('%Y-%m-%d') }}</p>
-                <p><strong>Period:</strong> {{athlete.original_days }}</p>
+                <p><strong>Registered:</strong> 
+                    <span class="gregorian-date" data-date="{{ athlete.registration_date.split(' ')[0] }}">
+                        {{ athlete.registration_date.split(' ')[0] }}
+                    </span>
+                </p>
+                <p><strong>End Date:</strong> 
+                    <span class="gregorian-date" data-date="{{ athlete.end_date }}">
+                        {{ athlete.end_date }}
+                    </span>
+                </p>
+                <p><strong>Period:</strong> {{ athlete.original_days }} days</p>
             </div>
             
             <div class="athlete-actions">
@@ -54,16 +62,46 @@
 </section>
 
 <script>
-    document.getElementById('search').addEventListener('input', function() {
-        const searchTerm = this.value.toLowerCase();
-        const cards = document.querySelectorAll('.athlete-card');
-        
-        cards.forEach(card => {
-            const name = card.querySelector('h3').textContent.toLowerCase();
-            if (name.includes(searchTerm)) {
-                card.style.display = 'block';
-            } else {
-                card.style.display = 'none';
+    document.addEventListener('DOMContentLoaded', function() {
+        // Search functionality
+        const searchInput = document.getElementById('search');
+        if (searchInput) {
+            searchInput.addEventListener('input', function() {
+                const searchTerm = this.value.toLowerCase();
+                const cards = document.querySelectorAll('.athlete-card');
+                
+                cards.forEach(card => {
+                    const name = card.querySelector('h3').textContent.toLowerCase();
+                    const id = card.querySelector('.id-badge').textContent.toLowerCase();
+                    if (name.includes(searchTerm) || id.includes(searchTerm)) {
+                        card.style.display = 'block';
+                    } else {
+                        card.style.display = 'none';
+                    }
+                });
+            });
+        }
+
+        // Date conversion - more robust handling
+        document.querySelectorAll('.gregorian-date').forEach(el => {
+            const originalDate = el.getAttribute('data-date') || el.textContent.trim();
+            
+            // Skip conversion if date is empty or invalid
+            if (!originalDate || originalDate === 'N/A' || originalDate === 'None') {
+                return;
+            }
+
+            try {
+                // Extract just the date part (YYYY-MM-DD)
+                const dateOnly = originalDate.split(' ')[0];
+                const convertedDate = gregorianToJalali(dateOnly);
+                
+                if (convertedDate && convertedDate !== '---') {
+                    el.textContent = convertedDate;
+                    el.setAttribute('title', "Gregorian: " + originalDate);
+                }
+            } catch (e) {
+                console.error('Date conversion error:', e);
             }
         });
     });

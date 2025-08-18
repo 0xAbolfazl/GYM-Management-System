@@ -5,7 +5,6 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>GymPro - Athlete Management</title>
     <link rel="stylesheet" href="{{ url_for('static', filename='css/base.css') }}">
-        <link rel="stylesheet" href="{{ url_for('static', filename='js/script.js') }}">
     <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
 </head>
@@ -67,6 +66,7 @@
                             <span class="role">Manager</span>
                         {% endif %}
                     </div>
+                </div>
             </div>
         </aside>
 
@@ -84,27 +84,27 @@
                 </div>
             </header>
 
-        <div class="content-container">
-            {% if request.endpoint != 'login' %}
-                {% with messages = get_flashed_messages(with_categories=true) %}
-                    {% if messages %}
-                        <div class="flash-messages">
-                            {% for category, message in messages %}
-                                <div class="flash-message flash-{{ category }}">
-                                    <i class="fas fa-{{ 'check-circle' if category == 'success' else 'exclamation-circle' }}"></i>
-                                    <span>{{ message }}</span>
-                                    <button class="flash-close">
-                                        <i class="fas fa-times"></i>
-                                    </button>
-                                </div>
-                            {% endfor %}
-                        </div>
-                    {% endif %}
-                {% endwith %}
-            {% endif %}
-            
-            {% block content %}{% endblock %}
-        </div>
+            <div class="content-container">
+                {% if request.endpoint != 'login' %}
+                    {% with messages = get_flashed_messages(with_categories=true) %}
+                        {% if messages %}
+                            <div class="flash-messages">
+                                {% for category, message in messages %}
+                                    <div class="flash-message flash-{{ category }}">
+                                        <i class="fas fa-{{ 'check-circle' if category == 'success' else 'exclamation-circle' }}"></i>
+                                        <span>{{ message }}</span>
+                                        <button class="flash-close">
+                                            <i class="fas fa-times"></i>
+                                        </button>
+                                    </div>
+                                {% endfor %}
+                            </div>
+                        {% endif %}
+                    {% endwith %}
+                {% endif %}
+                
+                {% block content %}{% endblock %}
+            </div>
 
             <footer class="main-footer">
                 <p>&copy; 2025 GymPro Management System. All rights reserved.</p>
@@ -149,9 +149,9 @@
             }
         });
 
-        // manage notif
+        // Manage notifications
         document.querySelectorAll('.flash-message').forEach(message => {
-            // Auto close after 5
+            // Auto close after 5 seconds
             setTimeout(() => {
                 message.style.animation = 'slideOut 0.4s ease forwards';
                 setTimeout(() => message.remove(), 400);
@@ -163,6 +163,92 @@
                 setTimeout(() => message.remove(), 400);
             });
         });
+
+            // Self-contained Gregorian to Jalali date converter
+        function gregorianToJalali(gregorianDate) {
+            if (!gregorianDate) return '---';
+            
+            try {
+                // Handle both date strings and datetime strings
+                let dateObj = new Date(gregorianDate);
+                if (isNaN(dateObj.getTime())) {
+                    // If not a valid date string, try splitting manually
+                    const dateParts = gregorianDate.toString().split(/[-/ T]/);
+                    if (dateParts.length >= 3) {
+                        dateObj = new Date(
+                            parseInt(dateParts[0]),
+                            parseInt(dateParts[1]) - 1,
+                            parseInt(dateParts[2])
+                        );
+                    }
+                }
+                
+                if (isNaN(dateObj.getTime())) {
+                    console.warn("Invalid date format:", gregorianDate);
+                    return gregorianDate;
+                }
+                
+                const gy = dateObj.getFullYear();
+                const gm = dateObj.getMonth() + 1;
+                const gd = dateObj.getDate();
+                
+                // Conversion algorithm
+                let g_day_no = 365*(gy-1600) + Math.floor((gy-1597)/4) - Math.floor((gy-1701)/100) + Math.floor((gy-1601)/400);
+                
+                for (let i=0; i < gm-1; ++i)
+                    g_day_no += [31, (gy%4==0 && gy%100!=0) || gy%400==0 ? 29 : 28, 31, 30, 31, 30, 31, 31, 30, 31, 30, 31][i];
+                
+                g_day_no += gd;
+                
+                let j_day_no = g_day_no - 79;
+                let j_np = Math.floor(j_day_no/12053);
+                j_day_no %= 12053;
+                
+                let jy = 979 + 33*j_np + 4*Math.floor(j_day_no/1461);
+                j_day_no %= 1461;
+                
+                if (j_day_no >= 366) {
+                    jy += Math.floor((j_day_no-1)/365);
+                    j_day_no = (j_day_no-1) % 365;
+                }
+                
+                let jm, jd;
+                for (let i = 0; i < 11 && j_day_no >= [31, 31, 31, 31, 31, 31, 30, 30, 30, 30, 30][i]; ++i) {
+                    j_day_no -= [31, 31, 31, 31, 31, 31, 30, 30, 30, 30, 30][i];
+                    jm = i + 2;
+                }
+                
+                if (jm === undefined) {
+                    jm = 1;
+                }
+                
+                jd = j_day_no + 1;
+                
+                // Format with leading zeros
+                return `${jy}/${jm < 10 ? '0'+jm : jm}/${jd < 10 ? '0'+jd : jd}`;
+            } catch (e) {
+                console.warn("Date conversion failed:", gregorianDate, e.message);
+                return gregorianDate;
+            }
+        }
+
+        // Apply conversion when page loads with more flexibility
+        document.addEventListener('DOMContentLoaded', function() {
+            // Convert elements with class 'gregorian-date'
+            document.querySelectorAll('.gregorian-date').forEach(el => {
+                const originalDate = el.textContent.trim();
+                el.textContent = gregorianToJalali(originalDate);
+                el.setAttribute('title', "Gregorian: " + originalDate);
+            });
+            
+            // Convert data-date attributes
+            document.querySelectorAll('[data-date]').forEach(el => {
+                const originalDate = el.getAttribute('data-date');
+                el.textContent = gregorianToJalali(originalDate);
+                el.setAttribute('title', "Gregorian: " + originalDate);
+            });
+        });
     </script>
+    {% block scripts %}{% endblock %}
 </body>
 </html>

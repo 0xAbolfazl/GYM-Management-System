@@ -33,7 +33,7 @@
         </div>
     </div>
     
-    <!-- New Expiring Soon Section -->
+    <!-- Expiring Soon Section -->
     <div class="expiring-section">
         <h3>
             <span class="expiring-icon">⏳</span>
@@ -57,8 +57,8 @@
                     {% for athlete in expiring_48h %}
                     <tr>
                         <td>{{ athlete.first_name }} {{ athlete.last_name }}</td>
-                        <td>{{ athlete.start_date }}</td>
-                        <td>{{ athlete.end_date }}</td>
+                        <td class="gregorian-date">{{ athlete.start_date }}</td>
+                        <td class="gregorian-date">{{ athlete.end_date }}</td>
                         <td>{{ athlete.original_days }} days</td>
                         <td>
                             <span class="status-badge {% if athlete.days_remaining <= 0 %}expired{% else %}warning{% endif %}">

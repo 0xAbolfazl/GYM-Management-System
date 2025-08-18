@@ -2,7 +2,7 @@
 
 {% block content %}
 <head>
-        <link rel="stylesheet" href="{{ url_for('static', filename='css/view_athlete.css') }}">
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/view_athlete.css') }}">
 </head>
 <section class="athlete-detail">
     <h2>Athlete Details</h2>
@@ -32,19 +32,19 @@
             </div>
             <div class="detail-row">
                 <span class="detail-label">Birth Date:</span>
-                <span class="detail-value">{{ athlete.birth_date or 'N/A' }}</span>
+                <span class="detail-value gregorian-date">{{ athlete.birth_date or 'N/A' }}</span>
             </div>
             <div class="detail-row">
                 <span class="detail-label">Registration Date:</span>
-                <span class="detail-value">{{ athlete.registration_date }}</span>
+                <span class="detail-value gregorian-date">{{ athlete.registration_date }}</span>
             </div>
             <div class="detail-row">
                 <span class="detail-label">Start Date:</span>
-                <span class="detail-value">{{ athlete.start_date }}</span>
+                <span class="detail-value gregorian-date">{{ athlete.start_date }}</span>
             </div>
             <div class="detail-row">
                 <span class="detail-label">End Date:</span>
-                <span class="detail-value">{{ athlete.end_date }}</span>
+                <span class="detail-value gregorian-date">{{ athlete.end_date }}</span>
             </div>
             <div class="detail-row">
                 <span class="detail-label">Period:</span>
