@@ -6,9 +6,39 @@ from functools import wraps
 import hashlib
 from datetime import datetime
 from time import sleep
+import jdatetime
 
 app = Flask(__name__)
 app.secret_key = 'gymsecret'  # Change this to a secure secret key
+
+def convert_persian_to_gregorian(persian_date_str):
+    """
+    Convert Persian (Solar Hijri) date string to Gregorian date string.
+    
+    Args:
+        persian_date_str (str): Persian date in format 'YYYY/MM/DD'
+    
+    Returns:
+        str: Gregorian date in format 'YYYY-MM-DD'
+    
+    Example:
+        Input: '1404/05/28'
+        Output: '2025-08-27'
+    """
+    try:
+        # Parse Persian date string
+        persian_date = jdatetime.datetime.strptime(persian_date_str, "%Y/%m/%d")
+        
+        # Convert to Gregorian
+        gregorian_date = persian_date.togregorian()
+        
+        # Format as YYYY-MM-DD
+        return gregorian_date.strftime("%Y-%m-%d")
+        
+    except ValueError as e:
+        raise ValueError(f"Invalid date format or date. Expected 'YYYY/MM/DD'. Error: {e}")
+    except Exception as e:
+        raise Exception(f"Conversion error: {e}")
 
 # Database Helper Functions
 def get_db_connection():
@@ -308,11 +338,15 @@ def register():
         phone = request.form['phone']
         emergency_phone = request.form.get('emergency_phone')
         father_name = request.form.get('father_name')
-        birth_date = request.form.get('birth_date')
+        birth_date_shamsi = request.form.get('birth_date')
+        birth_date = convert_persian_to_gregorian(birth_date_shamsi)
         days = int(request.form['days'])
-        start_date = request.form.get('start_date') or datetime.now().strftime('%Y-%m-%d')
+        start_date_shamsi = request.form.get('start_date') or datetime.now().strftime('%Y-%m-%d')
+        start_date = convert_persian_to_gregorian(start_date_shamsi)
         gender = session['gender']
         
+        print("this is user bd : "+str(birth_date))
+        print("this is user bd : "+str(start_date))
         registration_date = datetime.now().strftime('%Y-%m-%d %H:%M:%S')
         
         conn = get_db_connection()
@@ -333,8 +367,9 @@ def register():
         
         flash('Athlete registered successfully!', 'success')
         return redirect(url_for('athletes'))
-    
-    return render_template('register.html', default_start=datetime.now().strftime('%Y-%m-%d'))
+    today = jdatetime.date.today()
+
+    return render_template('register.html', default_start=today.strftime("%Y/%m/%d"))
 
 @app.route('/athletes')
 @login_required

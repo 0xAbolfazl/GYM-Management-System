@@ -46,12 +46,12 @@
             <div class="form-row">
                 <div class="form-group">
                     <label for="birth_date" class="form-label">Birth Date</label>
-                    <input type="date" id="birth_date" name="birth_date" class="form-control">
+                    <input type="text" id="birth_date" name="birth_date" class="form-control", placeholder="yyyy/mm/dd">
                 </div>
                 
                 <div class="form-group">
                     <label for="start_date" class="form-label">Program Start Date</label>
-                    <input type="date" id="start_date" name="start_date" class="form-control" value="{{ default_start }}">
+                    <input type="text" id="start_date" name="start_date" class="form-control" value="{{ default_start }}", placeholder="yyyy/mm/dd">
                 </div>
             </div>
             
@@ -72,7 +72,7 @@
                 
                 <!-- End Date Display (readonly) -->
                 <div class="end-date-display" style="margin-top: 10px;">
-                    <small class="text-muted">End Date: <span id="end_date_display">-</span></small>
+                    <!-- <small class="text-muted">End Date: <span id="end_date_display">-</span></small> -->
                 </div>
             </div>
             
@@ -120,7 +120,7 @@
                 this.classList.add('active');
                 
                 // Update end date display
-                updateEndDateDisplay();
+                // updateEndDateDisplay();
             });
         });
         
@@ -130,14 +130,14 @@
             dayOptions.forEach(btn => btn.classList.remove('active'));
             
             // Update end date display
-            updateEndDateDisplay();
+            // updateEndDateDisplay();
         });
         
         // Add change event to start date input
-        startDateInput.addEventListener('change', updateEndDateDisplay);
+        // startDateInput.addEventListener('change', updateEndDateDisplay);
         
         // Initialize end date display
-        updateEndDateDisplay();
+        // updateEndDateDisplay();
     });
 </script>
 {% endblock %}
