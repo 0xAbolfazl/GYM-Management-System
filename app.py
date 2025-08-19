@@ -40,6 +40,39 @@ def convert_persian_to_gregorian(persian_date_str):
     except Exception as e:
         raise Exception(f"Conversion error: {e}")
 
+def convert_gregorian_to_persian(gregorian_date_str):
+    """
+    Convert Gregorian date string to Persian (Solar Hijri) date string.
+    
+    Args:
+        gregorian_date_str (str): Gregorian date in format 'YYYY-MM-DD'
+    
+    Returns:
+        str: Persian date in format 'YYYY/MM/DD'
+    
+    Example:
+        Input: '2025-08-20'
+        Output: '1404/05/28'
+    """
+    try:
+        # Parse Gregorian date string
+        gregorian_date = datetime.strptime(gregorian_date_str, "%Y-%m-%d")
+        
+        # Convert to Persian date
+        persian_date = jdatetime.date.fromgregorian(
+            year=gregorian_date.year,
+            month=gregorian_date.month,
+            day=gregorian_date.day
+        )
+        
+        # Format as YYYY/MM/DD
+        return persian_date.strftime("%Y/%m/%d")
+        
+    except ValueError as e:
+        raise ValueError(f"Invalid date format. Expected 'YYYY-MM-DD'. Error: {e}")
+    except Exception as e:
+        raise Exception(f"Conversion error: {e}")
+
 # Database Helper Functions
 def get_db_connection():
     conn = sqlite3.connect('database.db', timeout=30) 
@@ -458,7 +491,7 @@ def edit_athlete(athlete_id):
         phone = request.form['phone']
         emergency_phone = request.form.get('emergency_phone')
         father_name = request.form.get('father_name')
-        birth_date = request.form.get('birth_date')
+        birth_date = convert_persian_to_gregorian(request.form.get('birth_date'))
         
         conn.execute('''UPDATE athletes SET
                       first_name = ?, last_name = ?, phone = ?,
@@ -479,6 +512,13 @@ def edit_athlete(athlete_id):
         return redirect(url_for('view_athlete', athlete_id=athlete_id))
     
     athlete = conn.execute('SELECT * FROM athletes WHERE id = ?', (athlete_id,)).fetchone()
+    athlete = dict(athlete)
+    print(convert_gregorian_to_persian(athlete['birth_date']))
+    result = convert_gregorian_to_persian(athlete['birth_date'])
+    athlete['birth_date_shamsi'] = result[0] if isinstance(result, tuple) else result
+    result = convert_gregorian_to_persian(athlete['registration_date'][0:9]) # removing hourse and mintue
+    athlete['registration_date_shamsi'] = result[0] if isinstance(result, tuple) else result # returning str instead of tuple
+    print(athlete)
     conn.close()
     
     if not athlete:
