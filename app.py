@@ -334,18 +334,21 @@ def home():
     for athlete in athletes:
         start_date = datetime.strptime(athlete['start_date'], '%Y-%m-%d')
         end_date = start_date + timedelta(days=athlete['days_remaining'])
-        remaining_days = (end_date - datetime.now()).days
+        remaining_days = (end_date - datetime.now()).days 
+        remaining_days = remaining_days if remaining_days >=0 else 0
         
-        if 0 <= remaining_days <= 2:  # Less than 48 hours
+        if remaining_days <= 2:  # Less than 48 hours
             expiring_48h.append({
                 'first_name': athlete['first_name'],
                 'last_name': athlete['last_name'],
                 'start_date': athlete['start_date'],
                 'end_date': end_date.strftime('%Y-%m-%d'),
+                'start_date_shamsi': convert_gregorian_to_persian(athlete['start_date']),
+                'end_date_shamsi': convert_gregorian_to_persian((datetime.strptime(athlete['start_date'], '%Y-%m-%d') + timedelta(days=athlete['days_remaining'])).strftime('%Y-%m-%d')),
                 'days_remaining': remaining_days,
                 'original_days': athlete['days_remaining']
             })
-    
+
     stats = {
         'total_athletes': conn.execute("SELECT COUNT(*) FROM athletes WHERE gender = ?", (gender,)).fetchone()[0],
         'active_athletes': conn.execute("SELECT COUNT(*) FROM athletes WHERE gender = ? AND days_remaining > 0", (gender,)).fetchone()[0],
@@ -378,8 +381,6 @@ def register():
         start_date = convert_persian_to_gregorian(start_date_shamsi)
         gender = session['gender']
         
-        print("this is user bd : "+str(birth_date))
-        print("this is user bd : "+str(start_date))
         registration_date = datetime.now().strftime('%Y-%m-%d %H:%M:%S')
         
         conn = get_db_connection()
@@ -437,7 +438,9 @@ def athletes():
             'phone': athlete['phone'],
             'registration_date': athlete['registration_date'],
             'start_date': athlete['start_date'],
+            'registration_date_shamsi' : convert_gregorian_to_persian(athlete['registration_date'].split(' ')[0]),
             'end_date': end_date.strftime('%Y-%m-%d'), 
+            'end_date_shamsi': convert_gregorian_to_persian((datetime.strptime(athlete['start_date'], '%Y-%m-%d') + timedelta(days=athlete['days_remaining'])).strftime('%Y-%m-%d')),
             'days_remaining': remaining_days,
             'original_days': athlete['days_remaining']
         })
@@ -471,10 +474,14 @@ def view_athlete(athlete_id):
         'emergency_phone': athlete['emergency_phone'],
         'father_name': athlete['father_name'],
         'birth_date': athlete['birth_date'],
+        'birth_date_shamsi': convert_gregorian_to_persian(athlete['birth_date']),
         'registration_date': athlete['registration_date'],
+        'registration_date_shamsi': convert_gregorian_to_persian(athlete['registration_date'].split(' ')[0]),
         'start_date': athlete['start_date'],
+        'start_date_shamsi': convert_gregorian_to_persian(athlete['start_date']),
         'end_date': end_date.strftime('%Y-%m-%d'),  
-        'days_remaining': (end_date - datetime.now()).days,
+        'end_date_shamsi': convert_gregorian_to_persian(end_date.strftime('%Y-%m-%d')),
+        'days_remaining': max(0, (end_date - datetime.now()).days),
         'original_days': athlete['days_remaining']
     }
     
@@ -513,12 +520,8 @@ def edit_athlete(athlete_id):
     
     athlete = conn.execute('SELECT * FROM athletes WHERE id = ?', (athlete_id,)).fetchone()
     athlete = dict(athlete)
-    print(convert_gregorian_to_persian(athlete['birth_date']))
-    result = convert_gregorian_to_persian(athlete['birth_date'])
-    athlete['birth_date_shamsi'] = result[0] if isinstance(result, tuple) else result
-    result = convert_gregorian_to_persian(athlete['registration_date'][0:9]) # removing hourse and mintue
-    athlete['registration_date_shamsi'] = result[0] if isinstance(result, tuple) else result # returning str instead of tuple
-    print(athlete)
+    athlete['birth_date_shamsi'] = convert_gregorian_to_persian(athlete['birth_date'])
+    athlete['registration_date_shamsi'] = convert_gregorian_to_persian(athlete['registration_date'][0:10])
     conn.close()
     
     if not athlete:
@@ -542,27 +545,35 @@ def renew_athlete(athlete_id):
             flash('Athlete not found!', 'danger')
             return redirect(url_for('athletes'))
         
-        # Calculate new values
+        # FIXED: Calculate remaining days based on current date, not original start date
         current_days = athlete['days_remaining']
-        new_days_remaining = current_days + additional_days
-        original_days = athlete['days_remaining'] 
         
-        # Update database
+        # If membership has expired (negative days), reset start date to today
+        if current_days <= 0:
+            # For expired memberships, start fresh from today
+            new_start_date = datetime.now().strftime('%Y-%m-%d')
+            new_days_remaining = additional_days
+        else:
+            # For active memberships, add days to existing balance
+            new_start_date = athlete['start_date']
+            new_days_remaining = current_days + additional_days
+        
+        # Update database with new values
         conn.execute('''UPDATE athletes SET 
-                      days_remaining = ?
+                      days_remaining = ?, start_date = ?
                       WHERE id = ?''',
-                    (new_days_remaining, athlete_id))
+                    (new_days_remaining, new_start_date, athlete_id))
         conn.commit()
         conn.close()
         
         # Log activity
         log_activity(
             action="RENEWAL",
-            details=f"Renewed membership for {athlete['first_name']} {athlete['last_name']} (ID: {athlete_id}) for {additional_days} days",
+            details=f"Renewed membership for {athlete['first_name']} {athlete['last_name']} (ID: {athlete_id}) for {additional_days} days. New total: {new_days_remaining} days",
             athlete_id=athlete_id
         )
         
-        flash(f'Membership renewed successfully for {additional_days} days!', 'success')
+        flash(f'Membership renewed successfully for {additional_days} days! Total days now: {new_days_remaining}', 'success')
         return redirect(url_for('view_athlete', athlete_id=athlete_id))
     
     # GET request - show form
@@ -573,7 +584,7 @@ def renew_athlete(athlete_id):
         flash('Athlete not found!', 'danger')
         return redirect(url_for('athletes'))
     
-    # Calculate end date
+    # Calculate end date based on current status
     start_date = datetime.strptime(athlete['start_date'], '%Y-%m-%d')
     end_date = (start_date + timedelta(days=athlete['days_remaining'])).strftime('%Y-%m-%d')
     
@@ -583,7 +594,8 @@ def renew_athlete(athlete_id):
         'last_name': athlete['last_name'],
         'days_remaining': athlete['days_remaining'],
         'end_date': end_date,
-        'original_days': athlete['days_remaining']  
+        'original_days': athlete['days_remaining'],
+        'is_expired': athlete['days_remaining'] <= 0  # Add flag for expired status
     }
     
     return render_template('renew_athlete.html', athlete=athlete_data)

@@ -20,7 +20,7 @@
                 </div>
                 <div>
                     <span style="font-size: 0.875rem; color: var(--gray-color);">End Date:</span>
-                    <span style="font-weight: 500;" class="gregorian-date" data-date="{{ athlete.end_date }}">
+                    <span style="font-weight: 500;"  data-date="{{ athlete.end_date }}">
                         {{ athlete.end_date }}
                     </span>
                 </div>
@@ -59,37 +59,6 @@
 
 <script>
     document.addEventListener('DOMContentLoaded', function() {
-        // Convert current end date to Shamsi
-        const endDateElement = document.querySelector('.gregorian-date');
-        if (endDateElement) {
-            const originalDate = endDateElement.getAttribute('data-date');
-            if (originalDate) {
-                const convertedDate = gregorianToJalali(originalDate);
-                if (convertedDate && convertedDate !== '---') {
-                    endDateElement.textContent = convertedDate;
-                    endDateElement.setAttribute('title', "Gregorian: " + originalDate);
-                }
-            }
-        }
-
-        // Calculate new end date
-        function calculateNewEndDate(days) {
-            if (days > 0) {
-                const endDate = new Date('{{ athlete.end_date }}');
-                endDate.setDate(endDate.getDate() + days);
-                
-                // Format Gregorian date for backend (YYYY-MM-DD)
-                const gregorianDate = endDate.toISOString().split('T')[0];
-                document.getElementById('new_end_date_gregorian').value = gregorianDate;
-                
-                // Convert to Shamsi for display
-                const shamsiDate = gregorianToJalali(gregorianDate);
-                document.getElementById('new_end_date').value = shamsiDate;
-            } else {
-                document.getElementById('new_end_date').value = '';
-                document.getElementById('new_end_date_gregorian').value = '';
-            }
-        }
 
         // Day option buttons
         document.querySelectorAll('.day-option').forEach(button => {

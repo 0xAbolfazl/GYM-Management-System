@@ -28,17 +28,9 @@
             <div class="athlete-essential-info">
                 <p><strong>Full Name:</strong> {{ athlete.first_name }} {{ athlete.last_name }}</p>
                 <p><strong>Phone:</strong> {{ athlete.phone }}</p>
-                <p><strong>Registered:</strong> 
-                    <span class="gregorian-date" data-date="{{ athlete.registration_date.split(' ')[0] }}">
-                        {{ athlete.registration_date.split(' ')[0] }}
-                    </span>
-                </p>
-                <p><strong>End Date:</strong> 
-                    <span class="gregorian-date" data-date="{{ athlete.end_date }}">
-                        {{ athlete.end_date }}
-                    </span>
-                </p>
-                <p><strong>Period:</strong> {{ athlete.original_days }} days</p>
+                <p><strong>Registered:</strong> {{ athlete.registration_date_shamsi }}</p>
+                <p><strong>End Date:</strong> {{ athlete.end_date_shamsi }}</p>
+                <p><strong>Period:</strong> {{athlete.original_days }} days</p>
             </div>
             
             <div class="athlete-actions">
@@ -81,29 +73,6 @@
                 });
             });
         }
-
-        // Date conversion - more robust handling
-        document.querySelectorAll('.gregorian-date').forEach(el => {
-            const originalDate = el.getAttribute('data-date') || el.textContent.trim();
-            
-            // Skip conversion if date is empty or invalid
-            if (!originalDate || originalDate === 'N/A' || originalDate === 'None') {
-                return;
-            }
-
-            try {
-                // Extract just the date part (YYYY-MM-DD)
-                const dateOnly = originalDate.split(' ')[0];
-                const convertedDate = gregorianToJalali(dateOnly);
-                
-                if (convertedDate && convertedDate !== '---') {
-                    el.textContent = convertedDate;
-                    el.setAttribute('title', "Gregorian: " + originalDate);
-                }
-            } catch (e) {
-                console.error('Date conversion error:', e);
-            }
-        });
     });
 </script>
 {% endblock %}

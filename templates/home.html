@@ -57,8 +57,8 @@
                     {% for athlete in expiring_48h %}
                     <tr>
                         <td>{{ athlete.first_name }} {{ athlete.last_name }}</td>
-                        <td class="gregorian-date">{{ athlete.start_date }}</td>
-                        <td class="gregorian-date">{{ athlete.end_date }}</td>
+                        <td>{{ athlete.start_date_shamsi }}</td>
+                        <td>{{ athlete.end_date_shamsi }}</td>
                         <td>{{ athlete.original_days }} days</td>
                         <td>
                             <span class="status-badge {% if athlete.days_remaining <= 0 %}expired{% else %}warning{% endif %}">
