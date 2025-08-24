@@ -49,7 +49,7 @@
                         <th>Full Name</th>
                         <th>Start Date</th>
                         <th>End Date</th>
-                        <th>Days</th>
+                        <th>Remaining Days</th>
                         <th>Status</th>
                     </tr>
                 </thead>
@@ -59,7 +59,7 @@
                         <td>{{ athlete.first_name }} {{ athlete.last_name }}</td>
                         <td>{{ athlete.start_date_shamsi }}</td>
                         <td>{{ athlete.end_date_shamsi }}</td>
-                        <td>{{ athlete.original_days }} days</td>
+                        <td>{{ athlete.days_remaining }} days</td>
                         <td>
                             <span class="status-badge {% if athlete.days_remaining <= 0 %}expired{% else %}warning{% endif %}">
                                 {% if athlete.days_remaining <= 0 %}Expired{% else %}Expiring{% endif %}

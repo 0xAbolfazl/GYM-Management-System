@@ -123,7 +123,7 @@ def init_db():
                     birth_date TEXT,
                     registration_date TEXT NOT NULL,
                     start_date TEXT NOT NULL,
-                    days_remaining INTEGER NOT NULL)''')
+                    original_days INTEGER NOT NULL)''')
         
         # Activity log table
         conn.execute('''CREATE TABLE IF NOT EXISTS activity_log
@@ -160,28 +160,50 @@ def init_db():
 def get_today_attendance_stats(gender, date_filter):
     conn = get_db_connection()
     try:
-       # Number of attendees on selected date
+        # Get all active athletes first
+        athletes = execute_with_retry(conn, '''
+            SELECT id, start_date, original_days 
+            FROM athletes 
+            WHERE gender = ?
+        ''', (gender,)).fetchall()
+        
+        # Filter active athletes in Python
+        active_athletes = []
+        for athlete in athletes:
+            start_date = datetime.strptime(athlete['start_date'], '%Y-%m-%d')
+            end_date = start_date + timedelta(days=athlete['original_days'])
+            remaining_days = (end_date - datetime.now()).days 
+            remaining_days = remaining_days if remaining_days >= 0 else 0
+            
+            if remaining_days > 0:
+                active_athletes.append(athlete['id'])
+        
+        total_active = len(active_athletes)
+        
+        if not active_athletes:
+            return {
+                'present': 0,
+                'active': 0,
+                'absent': 0
+            }
+        
+        # Number of attendees on selected date (only active athletes)
         present = execute_with_retry(conn, '''
             SELECT COUNT(DISTINCT a.id) 
             FROM attendance att
             JOIN athletes a ON att.athlete_id = a.id
-            WHERE att.date = ? AND a.gender = ?
-        ''', (date_filter, gender)).fetchone()[0]
+            WHERE att.date = ? AND a.gender = ? AND a.id IN ({})
+        '''.format(','.join('?' * len(active_athletes))), 
+        [date_filter, gender] + active_athletes).fetchone()[0]
         
-        # Active sessions (checked in but not checked out)
+        # Active sessions (checked in but not checked out) - only active athletes
         active = execute_with_retry(conn, '''
             SELECT COUNT(DISTINCT a.id) 
             FROM attendance att
             JOIN athletes a ON att.athlete_id = a.id
-            WHERE att.date = ? AND a.gender = ? AND att.check_out_time IS NULL
-        ''', (date_filter, gender)).fetchone()[0]
-        
-      
-        total_active = execute_with_retry(conn, '''
-            SELECT COUNT(*) 
-            FROM athletes 
-            WHERE gender = ? AND days_remaining > 0
-        ''', (gender,)).fetchone()[0]
+            WHERE att.date = ? AND a.gender = ? AND att.check_out_time IS NULL AND a.id IN ({})
+        '''.format(','.join('?' * len(active_athletes))), 
+        [date_filter, gender] + active_athletes).fetchone()[0]
         
         absent = total_active - present
         
@@ -201,6 +223,8 @@ def get_attendance_records(gender, date_filter, search_query=None):
                 a.id as athlete_id,
                 a.first_name,
                 a.last_name,
+                a.start_date,
+                a.original_days,
                 att.check_in_time,
                 att.check_out_time,
                 att.date
@@ -212,7 +236,7 @@ def get_attendance_records(gender, date_filter, search_query=None):
                 GROUP BY athlete_id
             ) latest ON a.id = latest.athlete_id
             LEFT JOIN attendance att ON att.id = latest.max_id
-            WHERE a.gender = ? AND a.days_remaining > 0
+            WHERE a.gender = ?
         '''
         
         params = [date_filter, gender]
@@ -230,47 +254,66 @@ def get_attendance_records(gender, date_filter, search_query=None):
         
         records = execute_with_retry(conn, query, params).fetchall()
         
-        # Processing records for display in the format
         attendance_data = []
         for record in records:
-            status = "absent"
-            duration = None
+            start_date = datetime.strptime(record['start_date'], '%Y-%m-%d')
+            end_date = start_date + timedelta(days=record['original_days'])
+            remaining_days = (end_date - datetime.now()).days 
+            remaining_days = remaining_days if remaining_days >= 0 else 0
             
-            if record['check_in_time']:
-                if record['check_out_time']:
-                    status = "present"
-                    # Calculate duration
-                    check_in = datetime.strptime(record['check_in_time'], '%Y-%m-%d %H:%M:%S')
-                    check_out = datetime.strptime(record['check_out_time'], '%Y-%m-%d %H:%M:%S')
-                    delta = check_out - check_in
-                    hours, remainder = divmod(delta.seconds, 3600)
-                    minutes, _ = divmod(remainder, 60)
-                    duration = f"{hours}h {minutes}m"
-                else:
-                    status = "active"
-            
-            attendance_data.append({
-                'athlete_id': record['athlete_id'],
-                'name': f"{record['first_name']} {record['last_name']}",
-                'check_in': record['check_in_time'],
-                'check_out': record['check_out_time'],
-                'duration': duration,
-                'status': status
-            })
+            if remaining_days > 0:
+                status = "absent"
+                duration = None
+                
+                if record['check_in_time']:
+                    if record['check_out_time']:
+                        status = "present"
+                        # Calculate duration
+                        check_in = datetime.strptime(record['check_in_time'], '%Y-%m-%d %H:%M:%S')
+                        check_out = datetime.strptime(record['check_out_time'], '%Y-%m-%d %H:%M:%S')
+                        delta = check_out - check_in
+                        hours, remainder = divmod(delta.seconds, 3600)
+                        minutes, _ = divmod(remainder, 60)
+                        duration = f"{hours}h {minutes}m"
+                    else:
+                        status = "active"
+                
+                attendance_data.append({
+                    'athlete_id': record['athlete_id'],
+                    'name': f"{record['first_name']} {record['last_name']}",
+                    'check_in': record['check_in_time'],
+                    'check_out': record['check_out_time'],
+                    'duration': duration,
+                    'status': status
+                })
         
         return attendance_data
     finally:
         conn.close()
 
+from datetime import datetime, timedelta
+
 def get_active_athletes(gender):
     conn = get_db_connection()
     try:
-        return execute_with_retry(conn, '''
-            SELECT id, first_name, last_name 
+        athletes = execute_with_retry(conn, '''
+            SELECT id, first_name, last_name, start_date, original_days 
             FROM athletes 
-            WHERE gender = ? AND days_remaining > 0
+            WHERE gender = ?
             ORDER BY first_name, last_name
         ''', (gender,)).fetchall()
+        
+        active_athletes = []
+        for athlete in athletes:
+            start_date = datetime.strptime(athlete['start_date'], '%Y-%m-%d')
+            end_date = start_date + timedelta(days=athlete['original_days'])
+            remaining_days = (end_date - datetime.now()).days 
+            
+            if remaining_days > 0:
+                active_athletes.append(athlete) 
+        
+        return active_athletes
+        
     finally:
         conn.close()
 
@@ -324,39 +367,57 @@ def home():
     conn = get_db_connection()
     gender = session['gender']
     
-    # Get athletes expiring in less than 48 hours
-    expiring_48h = []
+    # Get all athletes for this gender
     athletes = conn.execute(
-        "SELECT id, first_name, last_name, start_date, days_remaining FROM athletes WHERE gender = ? AND days_remaining > 0",
+        "SELECT id, first_name, last_name, start_date, original_days, registration_date FROM athletes WHERE gender = ?",
         (gender,)
     ).fetchall()
     
+    # Process athletes to calculate actual remaining days
+    active_athletes = []
+    expiring_48h = []
+    expiring_soon_count = 0
+    recent_registrations_count = 0
+    
+    # Calculate 7 days ago for recent registrations
+    seven_days_ago = datetime.now() - timedelta(days=7)
+    
     for athlete in athletes:
         start_date = datetime.strptime(athlete['start_date'], '%Y-%m-%d')
-        end_date = start_date + timedelta(days=athlete['days_remaining'])
+        end_date = start_date + timedelta(days=athlete['original_days'])
         remaining_days = (end_date - datetime.now()).days 
-        remaining_days = remaining_days if remaining_days >=0 else 0
+        remaining_days = remaining_days if remaining_days >= 0 else 0
+            
+            # Check if expiring in less than 48 hours
+        if remaining_days <= 2:
+                expiring_48h.append({
+                    'first_name': athlete['first_name'],
+                    'last_name': athlete['last_name'],
+                    'start_date': athlete['start_date'],
+                    'end_date': end_date.strftime('%Y-%m-%d'),
+                    'start_date_shamsi': convert_gregorian_to_persian(athlete['start_date']),
+                    'end_date_shamsi': convert_gregorian_to_persian(end_date.strftime('%Y-%m-%d')),
+                    'days_remaining': remaining_days,
+                    'original_days': athlete['original_days']
+                })
+        # Check if athlete is active
+        if remaining_days > 0:
+            active_athletes.append(athlete)            
+            # Count expiring soon (less than 7 days)
+            if remaining_days < 7:
+                expiring_soon_count += 1
         
-        if remaining_days <= 2:  # Less than 48 hours
-            expiring_48h.append({
-                'first_name': athlete['first_name'],
-                'last_name': athlete['last_name'],
-                'start_date': athlete['start_date'],
-                'end_date': end_date.strftime('%Y-%m-%d'),
-                'start_date_shamsi': convert_gregorian_to_persian(athlete['start_date']),
-                'end_date_shamsi': convert_gregorian_to_persian((datetime.strptime(athlete['start_date'], '%Y-%m-%d') + timedelta(days=athlete['days_remaining'])).strftime('%Y-%m-%d')),
-                'days_remaining': remaining_days,
-                'original_days': athlete['days_remaining']
-            })
-
+        # Count recent registrations (last 7 days)
+        if athlete['registration_date']:
+            registration_date = datetime.strptime(athlete['registration_date'], '%Y-%m-%d %H:%M:%S')
+            if registration_date > seven_days_ago:
+                recent_registrations_count += 1
+    
     stats = {
-        'total_athletes': conn.execute("SELECT COUNT(*) FROM athletes WHERE gender = ?", (gender,)).fetchone()[0],
-        'active_athletes': conn.execute("SELECT COUNT(*) FROM athletes WHERE gender = ? AND days_remaining > 0", (gender,)).fetchone()[0],
-        'expiring_soon': conn.execute("SELECT COUNT(*) FROM athletes WHERE gender = ? AND days_remaining > 0 AND days_remaining < 7", (gender,)).fetchone()[0],
-        'recent_registrations': conn.execute(
-            'SELECT COUNT(*) FROM athletes WHERE gender = ? AND registration_date > ?',
-            (gender, (datetime.now() - timedelta(days=7)).strftime('%Y-%m-%d %H:%M:%S'),)
-        ).fetchone()[0],
+        'total_athletes': len(athletes),
+        'active_athletes': len(active_athletes),
+        'expiring_soon': expiring_soon_count,
+        'recent_registrations': recent_registrations_count,
         'expiring_48h': expiring_48h,
         'expiring_48h_count': len(expiring_48h)
     }
@@ -377,7 +438,7 @@ def register():
         birth_date_shamsi = request.form.get('birth_date')
         birth_date = convert_persian_to_gregorian(birth_date_shamsi)
         days = int(request.form['days'])
-        start_date_shamsi = request.form.get('start_date') or datetime.now().strftime('%Y-%m-%d')
+        start_date_shamsi = request.form.get('start_date')# or datetime.now().strftime('%Y-%m-%d')
         start_date = convert_persian_to_gregorian(start_date_shamsi)
         gender = session['gender']
         
@@ -386,7 +447,7 @@ def register():
         conn = get_db_connection()
         conn.execute('''INSERT INTO athletes 
                       (id, first_name, last_name, phone, emergency_phone, father_name, 
-                       birth_date, registration_date, start_date, days_remaining, gender)
+                       birth_date, registration_date, start_date, original_days, gender)
                       VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)''',
                     (athlete_id, first_name, last_name, phone, emergency_phone, father_name,
                      birth_date, registration_date, start_date, days, gender))
@@ -427,7 +488,7 @@ def athletes():
     athletes = []
     for athlete in athletes_data:
         start_date = datetime.strptime(athlete['start_date'], '%Y-%m-%d')
-        end_date = start_date + timedelta(days=athlete['days_remaining'])
+        end_date = start_date + timedelta(days=athlete['original_days'])
         remaining_days = (end_date - datetime.now()).days
         remaining_days = max(0, remaining_days)
         
@@ -440,9 +501,9 @@ def athletes():
             'start_date': athlete['start_date'],
             'registration_date_shamsi' : convert_gregorian_to_persian(athlete['registration_date'].split(' ')[0]),
             'end_date': end_date.strftime('%Y-%m-%d'), 
-            'end_date_shamsi': convert_gregorian_to_persian((datetime.strptime(athlete['start_date'], '%Y-%m-%d') + timedelta(days=athlete['days_remaining'])).strftime('%Y-%m-%d')),
+            'end_date_shamsi': convert_gregorian_to_persian((datetime.strptime(athlete['start_date'], '%Y-%m-%d') + timedelta(days=athlete['original_days'])).strftime('%Y-%m-%d')),
             'days_remaining': remaining_days,
-            'original_days': athlete['days_remaining']
+            'original_days': athlete['original_days']
         })
     
     conn.close()
@@ -464,7 +525,7 @@ def view_athlete(athlete_id):
         return redirect(url_for('athletes'))
     
     start_date = datetime.strptime(athlete['start_date'], '%Y-%m-%d')
-    end_date = start_date + timedelta(days=athlete['days_remaining'])
+    end_date = start_date + timedelta(days=athlete['original_days'])
     
     athlete_data = {
         'id': athlete['id'],
@@ -482,7 +543,7 @@ def view_athlete(athlete_id):
         'end_date': end_date.strftime('%Y-%m-%d'),  
         'end_date_shamsi': convert_gregorian_to_persian(end_date.strftime('%Y-%m-%d')),
         'days_remaining': max(0, (end_date - datetime.now()).days),
-        'original_days': athlete['days_remaining']
+        'original_days': athlete['original_days']
     }
     
     return render_template('view_athlete.html', athlete=athlete_data)
@@ -546,21 +607,24 @@ def renew_athlete(athlete_id):
             return redirect(url_for('athletes'))
         
         # FIXED: Calculate remaining days based on current date, not original start date
-        current_days = athlete['days_remaining']
+        start_date = datetime.strptime(athlete['start_date'], '%Y-%m-%d')
+        end_date = start_date + timedelta(days=athlete['original_days'])
+        remaining_days = (end_date - datetime.now()).days
+        remaining_days = max(0, remaining_days)
         
         # If membership has expired (negative days), reset start date to today
-        if current_days <= 0:
+        if remaining_days <= 0:
             # For expired memberships, start fresh from today
             new_start_date = datetime.now().strftime('%Y-%m-%d')
             new_days_remaining = additional_days
         else:
             # For active memberships, add days to existing balance
             new_start_date = athlete['start_date']
-            new_days_remaining = current_days + additional_days
+            new_days_remaining = athlete['original_days'] + additional_days
         
         # Update database with new values
         conn.execute('''UPDATE athletes SET 
-                      days_remaining = ?, start_date = ?
+                      original_days = ?, start_date = ?
                       WHERE id = ?''',
                     (new_days_remaining, new_start_date, athlete_id))
         conn.commit()
@@ -586,16 +650,17 @@ def renew_athlete(athlete_id):
     
     # Calculate end date based on current status
     start_date = datetime.strptime(athlete['start_date'], '%Y-%m-%d')
-    end_date = (start_date + timedelta(days=athlete['days_remaining'])).strftime('%Y-%m-%d')
-    
+    end_date = (start_date + timedelta(days=athlete['original_days']))
+    remaining_days = max(0, (end_date - datetime.now()).days)
+
     athlete_data = {
         'id': athlete['id'],
         'first_name': athlete['first_name'],
         'last_name': athlete['last_name'],
-        'days_remaining': athlete['days_remaining'],
+        'days_remaining': remaining_days,
         'end_date': end_date,
-        'original_days': athlete['days_remaining'],
-        'is_expired': athlete['days_remaining'] <= 0  # Add flag for expired status
+        'original_days': athlete['original_days'],
+        'is_expired': remaining_days <= 0  # Add flag for expired status
     }
     
     return render_template('renew_athlete.html', athlete=athlete_data)
@@ -679,10 +744,19 @@ def attendance():
             current_time = datetime.now().strftime('%Y-%m-%d %H:%M:%S')
             # Checking the existence of the athlete and whether she is active
             athlete = execute_with_retry(conn, '''
-                SELECT 1 FROM athletes 
-                WHERE id = ? AND gender = ? AND days_remaining > 0
-                LIMIT 1
-            ''', (athlete_id, gender)).fetchone()
+                            SELECT id, start_date, original_days FROM athletes 
+                            WHERE id = ? AND gender = ?
+                            LIMIT 1
+                        ''', (athlete_id, gender)).fetchone()
+
+            if athlete:
+                start_date = datetime.strptime(athlete['start_date'], '%Y-%m-%d')
+                end_date = start_date + timedelta(days=athlete['original_days'])
+                remaining_days = (end_date - datetime.now()).days 
+                remaining_days = remaining_days if remaining_days >= 0 else 0
+                
+                if remaining_days <= 0:
+                    athlete = None  
             
             if not athlete:
                 flash('Athlete not found or inactive!', 'danger')
