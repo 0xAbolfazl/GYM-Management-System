@@ -659,6 +659,7 @@ def renew_athlete(athlete_id):
         'last_name': athlete['last_name'],
         'days_remaining': remaining_days,
         'end_date': end_date,
+        'end_date_shamsi' : convert_gregorian_to_persian(str(end_date).split(' ')[0])+" "+str(end_date).split(' ')[1],
         'original_days': athlete['original_days'],
         'is_expired': remaining_days <= 0  # Add flag for expired status
     }
