@@ -1,8 +1,40 @@
-from kavenegar import *
-api = KavenegarAPI('Your API Key')
-params = {
-        'sender': '1000xxxx',
-        'receptor' : '0919xxxxxx',
-        'message' : "Hello Python!"
-}   
-response = api.sms_send(params)
+from requests import get, post
+from dotenv import load_dotenv, find_dotenv
+import os
+
+
+load_dotenv(find_dotenv())
+
+API_KEY = os.getenv('API_KEY')
+BOT_TOKEN = os.getenv('BOT_TOKEN')
+CHAT_ID = os.getenv('CHAT_ID')
+
+def send_welcome_msg(number, name):
+    base_url = 'https://edge.ippanel.com/v1'
+    msg = f'سلام {name} عزیز به باشگاه ورزشی کیاپارس خوش امدی ادرس سایت باشگاه : https://midn.me/BT5mIw'
+    url = f'{base_url}/api/send/webservice?from=+983000505&message={msg}&to=+98{number}&apikey={API_KEY}'
+    try:
+        response = get(url=url)
+        code = response.status_code
+        if code == 200:
+            return True
+        else:
+            send_to_telegram_bot(f'Message sender returned : {code}')
+            return False
+    except Exception as e:
+        send_to_telegram_bot(f'Critical Error : \n{str(e)}')
+
+def send_to_telegram_bot(message):
+    try:
+        url = f"https://api.telegram.org/bot{BOT_TOKEN}/SendMessage?chat_id={CHAT_ID}&text={msg}"
+        sender = "https://www.httpdebugger.com/tools/ViewHttpHeaders.aspx"
+        payload = {
+            "UrlBox": url,
+            "AgentList": "Mozilla Firefox",
+            "VersionsList": "HTTP/1.1",
+            "MethodList": "POST"
+        }
+        response = post(sender, payload)
+        print(f"Telegram message sent. Status: {response.status_code}")
+    except Exception as e:
+        print(f"[ERROR] Failed to send Telegram message: {str(e)}")
