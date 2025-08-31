@@ -7,6 +7,7 @@ import hashlib
 from datetime import datetime
 from time import sleep
 import jdatetime
+from sms import send_welcome_msg
 
 app = Flask(__name__)
 app.secret_key = 'gymsecret'  # Change this to a secure secret key
@@ -461,6 +462,10 @@ def register():
         )
         
         flash('Athlete registered successfully!', 'success')
+        try:
+            send_welcome_msg(str(first_name))
+        except Exception:
+            pass
         return redirect(url_for('athletes'))
     today = jdatetime.date.today()
 
