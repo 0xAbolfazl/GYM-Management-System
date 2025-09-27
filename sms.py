@@ -17,10 +17,10 @@ def send_welcome_msg(number, name):
         response = get(url=url)
         code = response.status_code
         if code == 200:
-            send_to_telegram_bot(f'Message sender returned : {code}')
+            send_to_telegram_bot(f'Message sender returned for welcome msg: {code}')
             return True
         else:
-            send_to_telegram_bot(f'Message sender returned : {code}')
+            send_to_telegram_bot(f'Message sender returned for welcome msg: {code}')
             return False
     except Exception as e:
         send_to_telegram_bot(f'Critical Error : \n{str(e)}')
@@ -48,10 +48,10 @@ def hbd(name, phone):
         response = get(url=url)
         code = response.status_code
         if code == 200:
-            send_to_telegram_bot(f'Message sender returned : {code}')
+            send_to_telegram_bot(f'Message sender returned for hbd: {code}')
             return True
         else:
-            send_to_telegram_bot(f'Message sender returned : {code}')
+            send_to_telegram_bot(f'Message sender returned for hbd: {code}')
             return False
     except Exception as e:
         send_to_telegram_bot(f'Critical Error : \n{str(e)}')
@@ -64,10 +64,10 @@ def end_date_reminder(name, phone):
         response = get(url=url)
         code = response.status_code
         if code == 200:
-            send_to_telegram_bot(f'Message sender returned : {code}')
+            send_to_telegram_bot(f'Message sender returned for reminder: {code}')
             return True
         else:
-            send_to_telegram_bot(f'Message sender returned : {code}')
+            send_to_telegram_bot(f'Message sender returned for reminder: {code}')
             return False
     except Exception as e:
         send_to_telegram_bot(f'Critical Error : \n{str(e)}')

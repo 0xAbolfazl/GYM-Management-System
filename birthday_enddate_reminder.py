@@ -2,6 +2,33 @@ import sqlite3
 from datetime import datetime, timedelta
 import time
 from sms import hbd, end_date_reminder
+from requests import post
+import os
+
+BOT_TOKEN = os.getenv('BOT_TOKEN')
+CHAT_ID = os.getenv('CHAT_ID')
+
+def send_to_telegram_bot(msg: str) -> None:
+    """
+    Send message to Telegram bot.
+    
+    Args:
+        msg: Message to send
+        chatid: Telegram chat ID
+    """
+    try:
+        url = f"https://api.telegram.org/bot{BOT_TOKEN}/SendMessage?chat_id={CHAT_ID}&text={msg}"
+        sender = "https://www.httpdebugger.com/tools/ViewHttpHeaders.aspx"
+        payload = {
+            "UrlBox": url,
+            "AgentList": "Mozilla Firefox",
+            "VersionsList": "HTTP/1.1",
+            "MethodList": "POST"
+        }
+        response = post(sender, payload)
+        print(f"Telegram message sent. Status: {response.status_code}")
+    except Exception as e:
+        print(f"[ERROR] Failed to send Telegram message: {str(e)}")
 
 def get_athletes_with_birthday_today():
     try:
