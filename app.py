@@ -462,10 +462,8 @@ def register():
         )
         
         flash('Athlete registered successfully!', 'success')
-        try:
-            send_welcome_msg(str(first_name))
-        except Exception:
-            pass
+        send_welcome_msg(phone, str(first_name))
+
         return redirect(url_for('athletes'))
     today = jdatetime.date.today()
 

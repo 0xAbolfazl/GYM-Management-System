@@ -115,13 +115,9 @@ def send_reminder_to_ending_period():
 
 def run_scheduler():
     while True:
-        try:
-            get_athletes_with_birthday_today()
-            send_reminder_to_ending_period()
-        except Exception as e:
-            print(f"Error: {e}")  
-        finally:
-            time.sleep(24 * 60 * 60) 
+        get_athletes_with_birthday_today()
+        send_reminder_to_ending_period()
+        time.sleep(24 * 60 * 60) 
 
 if __name__ == "__main__":
     run_scheduler()
