@@ -1,7 +1,7 @@
 import sqlite3
 from datetime import datetime, timedelta
 import time
-from sms import hbd, end_date_reminder
+from sms import birthdate_msg, end_date_reminder_msg
 from requests import post
 import os
 
@@ -58,7 +58,7 @@ def get_athletes_with_birthday_today():
             print("Male athletes with birthday today:")
             print("-" * 40)
             for row in results:
-                hbd(name=row[0], phone=row[1])
+                birthdate_msg(name=row[0], phone=row[1])
                 print(f"Name: {row[0]}")
                 print(f"Phone: {row[1]}")
                 print("-" * 20)
@@ -99,7 +99,7 @@ def send_reminder_to_ending_period():
         # Send message to each athlete
         for row in results:
             name, phone = row
-            end_date_reminder(name=name, phone=phone)
+            end_date_reminder_msg(name=name, phone=phone)
             print(name+" "+phone)
             
         print(f"Sent reminders to {len(results)} athletes")

@@ -1,6 +1,7 @@
 from requests import get, post
 from dotenv import load_dotenv, find_dotenv
 import os
+import requests
 
 
 load_dotenv(find_dotenv())
@@ -8,22 +9,8 @@ load_dotenv(find_dotenv())
 API_KEY = os.getenv('API_KEY')
 BOT_TOKEN = os.getenv('BOT_TOKEN')
 CHAT_ID = os.getenv('CHAT_ID')
-
-def send_welcome_msg(number, name):
-    base_url = 'https://edge.ippanel.com/v1'
-    msg = f'''{name} عزیز به باشگاه کیاپارس خوش امدید\nhttps://midn.me/BT9Dml'''
-    url = f'{base_url}/api/send/webservice?from=+983000505&message={msg}&to=+98{number}&apikey={API_KEY}'
-    try:
-        response = get(url=url)
-        code = response.status_code
-        if code == 200:
-            send_to_telegram_bot(f'Message sender returned for welcome msg: {code}')
-            return True
-        else:
-            send_to_telegram_bot(f'Message sender returned for welcome msg: {code}')
-            return False
-    except Exception as e:
-        send_to_telegram_bot(f'Critical Error : \n{str(e)}')
+BASE_URL = "https://edge.ippanel.com/v1"  
+FROM_NUMBER = "+983000505"
 
 def send_to_telegram_bot(message):
     try:
@@ -40,34 +27,55 @@ def send_to_telegram_bot(message):
     except Exception as e:
         print(f"[ERROR] Failed to send Telegram message: {str(e)}")
 
-def hbd(name, phone):
-    base_url = 'https://edge.ippanel.com/v1'
-    msg = f'''{name} زادروزت مبارک باد'''
-    url = f'{base_url}/api/send/webservice?from=+983000505&message={msg}&to=+98{phone}&apikey={API_KEY}'
-    try:
-        response = get(url=url)
-        code = response.status_code
-        if code == 200:
-            send_to_telegram_bot(f'Message sender returned for hbd: {code}')
-            return True
-        else:
-            send_to_telegram_bot(f'Message sender returned for hbd: {code}')
-            return False
-    except Exception as e:
-        send_to_telegram_bot(f'Critical Error : \n{str(e)}')
+def msg_sender(phone_number, name, pattern_code):
+    payload = {
+        "sending_type": "pattern",
+        "from_number": FROM_NUMBER,
+        "code" : pattern_code,
+        "recipients": [f"+98{str(phone_number)[1:]}"],
+        "params": {
+    "name": name
+        }
+    }
 
-def end_date_reminder(name, phone):
-    base_url = 'https://edge.ippanel.com/v1'
-    msg = f'''{name} عزیز سررسید دوره باشگاه شما 3 روزدیگر فرامیرسد'''
-    url = f'{base_url}/api/send/webservice?from=+983000505&message={msg}&to=+98{phone}&apikey={API_KEY}'
+    headers = {
+        "Content-Type": "application/json",
+        "Accept": "application/json",
+        "Authorization": API_KEY 
+    }
+    
     try:
-        response = get(url=url)
-        code = response.status_code
-        if code == 200:
-            send_to_telegram_bot(f'Message sender returned for reminder: {code}')
-            return True
+        response = requests.post(
+            f"{BASE_URL}/api/send",
+            json=payload,
+            headers=headers,
+            timeout=30
+        )
+        
+        if response.status_code == 200:
+            print("Send successfully")
+            send_to_telegram_bot("Send successfully for welcome")
+            return response.json()
         else:
-            send_to_telegram_bot(f'Message sender returned for reminder: {code}')
-            return False
-    except Exception as e:
-        send_to_telegram_bot(f'Critical Error : \n{str(e)}')
+            print(f"Error status code: {response.status_code}")
+            print(f"response: {response.text}")
+            send_to_telegram_bot(f"Error status code: {response.status_code}")
+            send_to_telegram_bot(f"response: {response.text}")
+            return None
+            
+    except requests.exceptions.RequestException as e:
+        send_to_telegram_bot(f"Error Connecting to server: {e}")
+        print(f"Error Connecting to server: {e}")
+        return None
+
+def welcome_msg(number, name):
+    msg_sender(number, name, '9d3a2cc6z9ifzzk')
+
+def end_date_reminder_msg(number, name):
+    msg_sender(number, name, '0gkloqbefruu2mq')
+
+def birthdate_msg(number, name):
+    msg_sender(number, name, 'd2wk80fawdqp45b')
+
+if __name__ == "__main__":
+    birthdate_msg('09046081703', 'Abolfazl')
