@@ -11,6 +11,9 @@ BOT_TOKEN = os.getenv('BOT_TOKEN')
 CHAT_ID = os.getenv('CHAT_ID')
 BASE_URL = "https://edge.ippanel.com/v1"  
 FROM_NUMBER = "+983000505"
+WELCOME_PATTERN_ID = os.getenv('WELCOME_PATTERN_ID')
+END_DATE_PATTERN_ID = os.getenv('END_DATE_PATTERN_ID')
+BIRTHDATE_PATTERN_ID = os.getenv('BIRTHDATE_PATTERN_ID')
 
 def send_to_telegram_bot(message):
     try:
@@ -69,13 +72,13 @@ def msg_sender(phone_number, name, pattern_code):
         return None
 
 def welcome_msg(number, name):
-    msg_sender(number, name, '9d3a2cc6z9ifzzk')
+    msg_sender(number, name, WELCOME_PATTERN_ID)
 
 def end_date_reminder_msg(number, name):
-    msg_sender(number, name, '0gkloqbefruu2mq')
+    msg_sender(number, name, END_DATE_PATTERN_ID)
 
 def birthdate_msg(number, name):
-    msg_sender(number, name, 'd2wk80fawdqp45b')
+    msg_sender(number, name, BIRTHDATE_PATTERN_ID)
 
 if __name__ == "__main__":
-    birthdate_msg('09046081703', 'Abolfazl')
+    welcome_msg('09046081703', 'ابوالفضل')
