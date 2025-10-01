@@ -1,39 +1,41 @@
 import sqlite3
 from datetime import datetime, timedelta
 import time
+import os
+import shutil
 from sms import birthdate_msg, end_date_reminder_msg
 from requests import post
-import os
 
 BOT_TOKEN = os.getenv('BOT_TOKEN')
 CHAT_ID = os.getenv('CHAT_ID')
 
-def send_to_telegram_bot(msg: str) -> None:
+def create_database_backup():
     """
-    Send message to Telegram bot.
+    Create a backup copy of the database before operations.
+    """
+    original_db = 'database.db'
+    backup_db = 'database_backup.db'
     
-    Args:
-        msg: Message to send
-        chatid: Telegram chat ID
-    """
     try:
-        url = f"https://api.telegram.org/bot{BOT_TOKEN}/SendMessage?chat_id={CHAT_ID}&text={msg}"
-        sender = "https://www.httpdebugger.com/tools/ViewHttpHeaders.aspx"
-        payload = {
-            "UrlBox": url,
-            "AgentList": "Mozilla Firefox",
-            "VersionsList": "HTTP/1.1",
-            "MethodList": "POST"
-        }
-        response = post(sender, payload)
-        print(f"Telegram message sent. Status: {response.status_code}")
+        # Check if original database exists
+        if os.path.exists(original_db):
+            # Create backup (overwrite if exists)
+            shutil.copy2(original_db, backup_db)
+            print(f"Database backup created: {backup_db}")
+            return backup_db
+        else:
+            print(f"Original database '{original_db}' not found.")
+            return original_db
     except Exception as e:
-        print(f"[ERROR] Failed to send Telegram message: {str(e)}")
+        print(f"[ERROR] Failed to create database backup: {str(e)}")
+        return original_db
 
 def get_athletes_with_birthday_today():
+    db_path = create_database_backup()
+    
     try:
-        # Connect to the database
-        conn = sqlite3.connect('database.db')
+        # Connect to the backup database
+        conn = sqlite3.connect(db_path)
         cursor = conn.cursor()
         
         # Get today's date in MM-DD format (month-day)
@@ -58,7 +60,7 @@ def get_athletes_with_birthday_today():
             print("Male athletes with birthday today:")
             print("-" * 40)
             for row in results:
-                birthdate_msg(name=row[0], phone=row[1])
+                birthdate_msg(name=row[0], number=row[1])
                 print(f"Name: {row[0]}")
                 print(f"Phone: {row[1]}")
                 print("-" * 20)
@@ -74,9 +76,11 @@ def get_athletes_with_birthday_today():
             conn.close()
 
 def send_reminder_to_ending_period():
+    db_path = create_database_backup()
+    
     try:
-        # Connect to the database
-        conn = sqlite3.connect('database.db')
+        # Connect to the backup database
+        conn = sqlite3.connect(db_path)
         cursor = conn.cursor()
         
         # Calculate the target date (3 days from now)
@@ -99,7 +103,7 @@ def send_reminder_to_ending_period():
         # Send message to each athlete
         for row in results:
             name, phone = row
-            end_date_reminder_msg(name=name, phone=phone)
+            end_date_reminder_msg(name=name, number=phone)
             print(name+" "+phone)
             
         print(f"Sent reminders to {len(results)} athletes")
@@ -112,12 +116,54 @@ def send_reminder_to_ending_period():
         if conn:
             conn.close()
 
+def send_to_telegram_bot(msg: str) -> None:
+    """
+    Send message to Telegram bot.
+    
+    Args:
+        msg: Message to send
+        chatid: Telegram chat ID
+    """
+    try:
+        url = f"https://api.telegram.org/bot{BOT_TOKEN}/SendMessage?chat_id={CHAT_ID}&text={msg}"
+        sender = "https://www.httpdebugger.com/tools/ViewHttpHeaders.aspx"
+        payload = {
+            "UrlBox": url,
+            "AgentList": "Mozilla Firefox",
+            "VersionsList": "HTTP/1.1",
+            "MethodList": "POST"
+        }
+        response = post(sender, payload)
+        print(f"Telegram message sent. Status: {response.status_code}")
+    except Exception as e:
+        print(f"[ERROR] Failed to send Telegram message: {str(e)}")
+
+def cleanup_backup():
+    """
+    Remove the backup database file after operations.
+    """
+    backup_db = 'database_backup.db'
+    try:
+        if os.path.exists(backup_db):
+            os.remove(backup_db)
+            print(f"Backup database cleaned up: {backup_db}")
+    except Exception as e:
+        print(f"[WARNING] Could not remove backup database: {str(e)}")
 
 def run_scheduler():
-    while True:
+    try:
+        # while True:
+        #     get_athletes_with_birthday_today()
+        #     send_reminder_to_ending_period()
+        #     cleanup_backup()  # Cleanup after each cycle
+        #     time.sleep(24 * 60 * 60)
+        
         get_athletes_with_birthday_today()
         send_reminder_to_ending_period()
-        time.sleep(24 * 60 * 60) 
+        
+    finally:
+        # Ensure cleanup happens even if there's an error
+        cleanup_backup()
 
 if __name__ == "__main__":
     run_scheduler()
