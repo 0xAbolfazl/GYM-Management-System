@@ -5,6 +5,9 @@ import os
 import shutil
 from sms import birthdate_msg, end_date_reminder_msg
 from requests import post
+from dotenv import load_dotenv
+
+load_dotenv()
 
 BOT_TOKEN = os.getenv('BOT_TOKEN')
 CHAT_ID = os.getenv('CHAT_ID')
