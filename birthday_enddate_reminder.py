@@ -9,6 +9,13 @@ from requests import post
 BOT_TOKEN = os.getenv('BOT_TOKEN')
 CHAT_ID = os.getenv('CHAT_ID')
 
+def add(txt):
+    try:
+        print(txt)
+        send_to_telegram_bot(txt)
+    except Exception:
+        pass
+
 def create_database_backup():
     """
     Create a backup copy of the database before operations.
@@ -21,13 +28,13 @@ def create_database_backup():
         if os.path.exists(original_db):
             # Create backup (overwrite if exists)
             shutil.copy2(original_db, backup_db)
-            print(f"Database backup created: {backup_db}")
+            add(f"Database backup created: {backup_db}")
             return backup_db
         else:
-            print(f"Original database '{original_db}' not found.")
+            add(f"Original database '{original_db}' not found.")
             return original_db
     except Exception as e:
-        print(f"[ERROR] Failed to create database backup: {str(e)}")
+        add(f"[ERROR] Failed to create database backup: {str(e)}")
         return original_db
 
 def get_athletes_with_birthday_today():
@@ -57,18 +64,18 @@ def get_athletes_with_birthday_today():
         
         # Print results
         if results:
-            print("Male athletes with birthday today:")
-            print("-" * 40)
+            add("Male athletes with birthday today:")
+            add("-" * 40)
             for row in results:
                 birthdate_msg(name=row[0], number=row[1])
-                print(f"Name: {row[0]}")
-                print(f"Phone: {row[1]}")
-                print("-" * 20)
+                add(f"Name: {row[0]}")
+                add(f"Phone: {row[1]}")
+                add("-" * 20)
         else:
-            print("No male athletes found with birthday today.")
+            add("No male athletes found with birthday today.")
             
     except sqlite3.Error as e:
-        print(f"Database connection error: {e}")
+        add(f"Database connection error: {e}")
         
     finally:
         # Close connection
@@ -106,10 +113,10 @@ def send_reminder_to_ending_period():
             end_date_reminder_msg(name=name, number=phone)
             print(name+" "+phone)
             
-        print(f"Sent reminders to {len(results)} athletes")
+        add(f"Sent reminders to {len(results)} athletes")
             
     except sqlite3.Error as e:
-        print(f"Database connection error: {e}")
+        add(f"Database connection error: {e}")
         
     finally:
         # Close connection
