@@ -16,11 +16,29 @@ CHAT_ID = os.getenv('CHAT_ID')
 def add(txt):
     try:
         print(txt)
+        log(txt)
         thread = threading.Thread(target=send_to_telegram_bot, args=(txt,))
         thread.daemon = True
         thread.start()
     except Exception:
         pass
+
+def log(text):
+    """
+    Write text to a file. If file doesn't exist, it will be created.
+    If file exists, new text will be appended to the end.
+    
+    Args:
+        filename (str): Name of the file
+        text (str): Text to be written to the file
+    """
+    try:
+        filename = 'applog.txt'
+        with open(filename, 'a', encoding='utf-8') as file:
+            file.write(text + '\n')  # Add new line
+        print(f"Text successfully written to file '{filename}'.")
+    except Exception as e:
+        print(f"Error writing to file: {str(e)}")
 
 def create_database_backup():
     """

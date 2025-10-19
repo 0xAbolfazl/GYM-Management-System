@@ -2,6 +2,8 @@ from requests import get, post
 from dotenv import load_dotenv, find_dotenv
 import os
 import requests
+import threading
+from time import sleep
 
 
 load_dotenv(find_dotenv())
@@ -14,6 +16,30 @@ FROM_NUMBER = "+983000505"
 WELCOME_PATTERN_ID = os.getenv('WELCOME_PATTERN_ID')
 END_DATE_PATTERN_ID = os.getenv('END_DATE_PATTERN_ID')
 BIRTHDATE_PATTERN_ID = os.getenv('BIRTHDATE_PATTERN_ID')
+
+def add(txt):
+    try:
+        print(txt)
+        log(txt)
+    except Exception:
+        pass
+
+def log(text):
+    """
+    Write text to a file. If file doesn't exist, it will be created.
+    If file exists, new text will be appended to the end.
+    
+    Args:
+        filename (str): Name of the file
+        text (str): Text to be written to the file
+    """
+    try:
+        filename = 'applog.txt'
+        with open(filename, 'a', encoding='utf-8') as file:
+            file.write(text + '\n')  # Add new line
+        print(f"Text successfully written to file '{filename}'.")
+    except Exception as e:
+        print(f"Error writing to file: {str(e)}")
 
 def send_to_telegram_bot(message):
     try:
@@ -56,19 +82,15 @@ def msg_sender(phone_number, name, pattern_code):
         )
         
         if response.status_code == 200:
-            print("Send successfully")
-            send_to_telegram_bot("Send successfully for welcome")
+            add("Send successfully for welcome")
             return response.json()
         else:
-            print(f"Error status code: {response.status_code}")
-            print(f"response: {response.text}")
-            send_to_telegram_bot(f"Error status code: {response.status_code}")
-            send_to_telegram_bot(f"response: {response.text}")
+            add(f"Error status code: {response.status_code}")
+            add(f"response: {response.text}")
             return None
             
     except requests.exceptions.RequestException as e:
-        send_to_telegram_bot(f"Error Connecting to server: {e}")
-        print(f"Error Connecting to server: {e}")
+        add(f"Error Connecting to server: {e}")
         return None
 
 def welcome_msg(number, name):
@@ -81,4 +103,4 @@ def birthdate_msg(number, name):
     msg_sender(number, name, BIRTHDATE_PATTERN_ID)
 
 if __name__ == "__main__":
-    welcome_msg('09046081703', 'ابوالفضل')
+    welcome_msg('09040000000', 'name')
