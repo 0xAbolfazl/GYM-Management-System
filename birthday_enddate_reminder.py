@@ -3,6 +3,7 @@ from datetime import datetime, timedelta
 import time
 import os
 import shutil
+import threading
 from sms import birthdate_msg, end_date_reminder_msg
 from requests import post
 from dotenv import load_dotenv
@@ -15,7 +16,9 @@ CHAT_ID = os.getenv('CHAT_ID')
 def add(txt):
     try:
         print(txt)
-        send_to_telegram_bot(txt)
+        thread = threading.Thread(target=send_to_telegram_bot, args=(txt,))
+        thread.daemon = True
+        thread.start()
     except Exception:
         pass
 
@@ -31,13 +34,13 @@ def create_database_backup():
         if os.path.exists(original_db):
             # Create backup (overwrite if exists)
             shutil.copy2(original_db, backup_db)
-            add(f"Database backup created: {backup_db}")
+            add(f"[BD-END] Database backup created: {backup_db}")
             return backup_db
         else:
-            add(f"Original database '{original_db}' not found.")
+            add(f"[BD-END] Original database '{original_db}' not found.")
             return original_db
     except Exception as e:
-        add(f"[ERROR] Failed to create database backup: {str(e)}")
+        add(f"[BD-END] [ERROR] Failed to create database backup: {str(e)}")
         return original_db
 
 def get_athletes_with_birthday_today():
@@ -67,7 +70,7 @@ def get_athletes_with_birthday_today():
         
         # Print results
         if results:
-            add("Male athletes with birthday today:")
+            add("[BD-END] Male athletes with birthday today:")
             add("-" * 40)
             for row in results:
                 birthdate_msg(name=row[0], number=row[1])
@@ -75,10 +78,10 @@ def get_athletes_with_birthday_today():
                 add(f"Phone: {row[1]}")
                 add("-" * 20)
         else:
-            add("No male athletes found with birthday today.")
+            add("[BD-END] No male athletes found with birthday today.")
             
     except sqlite3.Error as e:
-        add(f"Database connection error: {e}")
+        add(f"[BD-END] Database connection error: {e}")
         
     finally:
         # Close connection
@@ -116,10 +119,10 @@ def send_reminder_to_ending_period():
             end_date_reminder_msg(name=name, number=phone)
             print(name+" "+phone)
             
-        add(f"Sent reminders to {len(results)} athletes")
+        add(f"[BD-END] Sent reminders to {len(results)} athletes")
             
     except sqlite3.Error as e:
-        add(f"Database connection error: {e}")
+        add(f"[BD-END] Database connection error: {e}")
         
     finally:
         # Close connection
@@ -156,21 +159,22 @@ def cleanup_backup():
     try:
         if os.path.exists(backup_db):
             os.remove(backup_db)
-            print(f"Backup database cleaned up: {backup_db}")
+            print(f"[BD-END] Backup database cleaned up: {backup_db}")
     except Exception as e:
-        print(f"[WARNING] Could not remove backup database: {str(e)}")
+        print(f"[BD-END] [WARNING] Could not remove backup database: {str(e)}")
 
 def run_scheduler():
     try:
-        # while True:
-        #     get_athletes_with_birthday_today()
-        #     send_reminder_to_ending_period()
-        #     cleanup_backup()  # Cleanup after each cycle
-        #     time.sleep(24 * 60 * 60)
-        
+
         get_athletes_with_birthday_today()
         send_reminder_to_ending_period()
+        cleanup_backup()  # Cleanup after each cycle
+   
         
+    except KeyboardInterrupt:
+        print("[BD-END] Program interrupted by user")
+    except Exception as e:
+        print(f"[BD-END] [ERROR] An error occurred: {str(e)}")
     finally:
         # Ensure cleanup happens even if there's an error
         cleanup_backup()

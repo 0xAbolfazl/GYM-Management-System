@@ -3,3 +3,4 @@ jalaali
 jdatetime
 requests
 dotenv
+threading

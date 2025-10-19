@@ -7,12 +7,26 @@ from email.mime.base import MIMEBase
 from email.mime.text import MIMEText
 from email import encoders
 from dotenv import load_dotenv
+import threading 
+from requests import post
 
 load_dotenv()
 
 EMAIL_USER = os.getenv('EMAIL_USER')
 EMAIL_PASS = os.getenv('EMAIL_PASS')
 TO_EMAIL = os.getenv('TO_EMAIL')
+TO_EMAIL2 = os.getenv('TO_EMAIL2')
+BOT_TOKEN = os.getenv('BOT_TOKEN')
+CHAT_ID = os.getenv('CHAT_ID')
+
+def add(txt):
+    try:
+        print(txt)
+        thread = threading.Thread(target=send_to_telegram_bot, args=(txt,))
+        thread.daemon = True
+        thread.start()
+    except Exception:
+        pass
 
 def send_db_backup():
     db_file = "/home/kiaparsg/gym/database.db"
@@ -31,18 +45,20 @@ def send_db_backup():
         print(f"Backup copied to: {backup_path}")
         
         # sending backup file via email
-        send_backup_email(backup_path)
+        send_backup_email(backup_path, TO_EMAIL)
+        send_backup_email(backup_path, TO_EMAIL2)
+        add("BACKUP DB SENT TO YOUR EMAIL")
         
     except Exception as e:
-        print(f"Error in backup process: {e}")
+        add(f"Error in backup process: {e}")
 
-def send_backup_email(backup_file_path):
+def send_backup_email(backup_file_path, rec_EMAIL):
     SMTP_SERVER = "smtp.gmail.com"
     SMTP_PORT = 587
     
     msg = MIMEMultipart()
     msg['From'] = EMAIL_USER
-    msg['To'] = TO_EMAIL
+    msg['To'] = rec_EMAIL
     msg['Subject'] = f"Database Backup - {datetime.datetime.now().strftime('%Y-%m-%d')}"
     
     body = f"""
@@ -92,6 +108,28 @@ def cleanup_old_backups(days=7):
             if (now - file_time).days > days:
                 os.remove(file_path)
                 print(f"Deleted old backup: {filename}")
+
+def send_to_telegram_bot(msg: str) -> None:
+    """
+    Send message to Telegram bot.
+    
+    Args:
+        msg: Message to send
+        chatid: Telegram chat ID
+    """
+    try:
+        url = f"https://api.telegram.org/bot{BOT_TOKEN}/SendMessage?chat_id={CHAT_ID}&text={msg}"
+        sender = "https://www.httpdebugger.com/tools/ViewHttpHeaders.aspx"
+        payload = {
+            "UrlBox": url,
+            "AgentList": "Mozilla Firefox",
+            "VersionsList": "HTTP/1.1",
+            "MethodList": "POST"
+        }
+        response = post(sender, payload)
+        print(f"Telegram message sent. Status: {response.status_code}")
+    except Exception as e:
+        print(f"[ERROR] Failed to send Telegram message: {str(e)}")
 
 if __name__ == "__main__":
     # backup
