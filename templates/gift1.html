@@ -1,0 +1,443 @@
+ <!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>KiaPars Gym Giveaway</title>
+    <!-- Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- Google Fonts -->
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;700;900&display=swap" rel="stylesheet">
+    
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    fontFamily: {
+                        sans: ['Inter', 'sans-serif'],
+                    },
+                    colors: {
+                        slate: {
+                            850: '#151e32',
+                            900: '#0f172a',
+                        },
+                        gold: {
+                            400: '#fbbf24',
+                            500: '#f59e0b',
+                            600: '#d97706',
+                        }
+                    },
+                    animation: {
+                        'pulse-slow': 'pulse 3s cubic-bezier(0.4, 0, 0.6, 1) infinite',
+                    }
+                }
+            }
+        }
+    </script>
+
+    <style>
+        body {
+            /* Deep modern background */
+            background: radial-gradient(circle at top, #1e293b, #0f172a 60%, #020617);
+            color: #f8fafc;
+            overflow-x: hidden;
+        }
+
+        /* Pointer Shadow & Depth */
+        .pointer-body {
+            filter: drop-shadow(0px 4px 6px rgba(0,0,0,0.6));
+            z-index: 30;
+        }
+
+        /* Wheel Glow Effect */
+        .wheel-container::before {
+            content: '';
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            width: 105%;
+            height: 105%;
+            border-radius: 50%;
+            background: radial-gradient(circle, rgba(245, 158, 11, 0.2) 0%, rgba(0,0,0,0) 70%);
+            z-index: -1;
+        }
+
+        /* Glassmorphism Modal */
+        .glass-panel {
+            background: rgba(30, 41, 59, 0.7);
+            backdrop-filter: blur(12px);
+            -webkit-backdrop-filter: blur(12px);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.5);
+        }
+
+        /* Confetti Animation */
+        @keyframes confetti-fall {
+            0% { 
+                transform: translate3d(0, -10vh, 0) rotateX(0) rotateY(0) rotateZ(0); 
+                opacity: 1; 
+            }
+            100% { 
+                transform: translate3d(var(--drift), 105vh, 0) rotateX(720deg) rotateY(360deg) rotateZ(180deg); 
+                opacity: 0; 
+            }
+        }
+        .confetti {
+            position: fixed;
+            z-index: 100;
+            pointer-events: none;
+            top: 0;
+            will-change: transform, opacity;
+        }
+    </style>
+</head>
+<body class="min-h-screen flex flex-col items-center py-8 md:py-12 selection:bg-amber-500 selection:text-black">
+
+    <!-- Header -->
+    <header class="text-center mb-8 px-4 z-10 relative">
+        <div class="inline-block px-4 py-1.5 mb-4 rounded-full bg-slate-800/80 border border-slate-700 shadow-lg backdrop-blur-sm">
+            <span class="text-amber-400 text-xs font-black tracking-[0.2em] uppercase flex items-center gap-2">
+                <span class="w-2 h-2 rounded-full bg-amber-500 animate-pulse"></span>
+                Official Giveaway
+            </span>
+        </div>
+        <h1 class="text-5xl md:text-7xl font-black text-transparent bg-clip-text bg-gradient-to-br from-white via-slate-200 to-slate-500 mb-2 tracking-tighter drop-shadow-sm">
+            KiaPars <span class="text-amber-500">Gym</span>
+        </h1>
+        <p class="text-slate-400 text-lg font-medium max-w-md mx-auto leading-relaxed">
+            Test your luck! Spin the wheel to unlock exclusive gym rewards.
+        </p>
+    </header>
+
+    <!-- Wheel Container -->
+    <main class="relative flex flex-col items-center justify-center w-full max-w-3xl px-4 flex-grow">
+        
+        <!-- The Wheel Wrapper -->
+        <div class="relative mb-12 wheel-container group">
+            <!-- Pointer (Design updated) -->
+            <div class="absolute top-1/2 -right-6 md:-right-10 -translate-y-1/2 z-20 pointer-body">
+                <div class="relative">
+                    <div class="w-0 h-0 border-y-[20px] border-y-transparent border-r-[45px] border-r-amber-500 filter drop-shadow-lg"></div>
+                    <div class="absolute top-1/2 -left-2 -translate-y-1/2 w-4 h-8 bg-amber-600 rounded-l-full"></div>
+                </div>
+            </div>
+
+            <!-- Canvas -->
+            <canvas id="wheelCanvas" width="500" height="500" class="rounded-full shadow-2xl shadow-black ring-4 ring-slate-800 max-w-full h-auto w-[340px] md:w-[500px] transition-transform will-change-transform"></canvas>
+            
+            <!-- Center Cap with Logo/Icon placeholder -->
+            <div class="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-20 h-20 bg-slate-800 rounded-full border-4 border-amber-500 shadow-[0_0_20px_rgba(245,158,11,0.3)] flex items-center justify-center z-10">
+                <div class="w-12 h-12 bg-gradient-to-br from-slate-700 to-slate-900 rounded-full flex items-center justify-center">
+                    <span class="text-2xl">💪</span>
+                </div>
+            </div>
+        </div>
+
+        <!-- Spin Button -->
+        <button id="spinBtn" class="relative group overflow-hidden px-16 py-5 bg-gradient-to-r from-amber-500 to-yellow-500 hover:from-amber-400 hover:to-yellow-400 text-slate-900 text-2xl font-black uppercase tracking-widest rounded-2xl shadow-[0_0_40px_-10px_rgba(245,158,11,0.5)] transform transition-all duration-200 hover:scale-105 active:scale-95 disabled:opacity-50 disabled:cursor-not-allowed disabled:grayscale">
+            <span class="relative z-10 flex items-center gap-2">
+                SPIN NOW
+            </span>
+            <!-- Shine effect -->
+            <div class="absolute top-0 -left-[100%] w-full h-full bg-gradient-to-r from-transparent via-white/30 to-transparent skew-x-12 transition-all duration-700 group-hover:left-[100%]"></div>
+        </button>
+    </main>
+
+    <!-- Footer -->
+    <footer class="mt-auto py-6 text-slate-500 text-sm font-medium border-t border-slate-800/50 w-full text-center">
+        &copy; <span id="year"></span> KiaPars Gym. All rights reserved.
+    </footer>
+
+    <!-- Result Modal -->
+    <div id="modalOverlay" class="fixed inset-0 bg-black/80 backdrop-blur-sm z-50 flex items-center justify-center p-4 hidden opacity-0 transition-all duration-500">
+        <div id="modalContent" class="glass-panel rounded-3xl w-full max-w-md p-8 text-center transform scale-90 transition-all duration-500 translate-y-4">
+            
+            <div class="relative inline-block mb-6">
+                <div class="absolute inset-0 bg-amber-500 blur-2xl opacity-20 rounded-full"></div>
+                <div id="modalIcon" class="relative text-7xl animate-bounce">🎉</div>
+            </div>
+            
+            <h2 class="text-3xl font-bold text-white mb-2 tracking-tight">Congratulations!</h2>
+            <p class="text-slate-400 text-sm mb-8 uppercase tracking-widest font-semibold">You have won</p>
+            
+            <div class="bg-gradient-to-r from-slate-900/80 to-slate-800/80 rounded-2xl p-8 border border-slate-700/50 mb-8 shadow-inner relative overflow-hidden group">
+                <div class="absolute inset-0 bg-amber-500/5 opacity-0 group-hover:opacity-100 transition-opacity"></div>
+                <h3 id="modalPrizeName" class="relative text-3xl md:text-4xl font-black text-amber-400 leading-tight break-words">
+                    <!-- Prize Name injected here -->
+                </h3>
+            </div>
+
+            <button onclick="closeModal()" class="w-full py-4 bg-slate-700 hover:bg-slate-600 text-white font-bold rounded-xl transition-all shadow-lg hover:shadow-slate-600/20 active:translate-y-0.5">
+                Collect Reward & Spin Again
+            </button>
+        </div>
+    </div>
+
+    <script>
+        // --- CONFIGURATION ---
+        const prizes = [
+            // RARE (Weight: 2)
+            { label: "Creatine",       weight: 2,  color: "#f59e0b", textColor: "#0f172a" }, 
+            { label: "Glutamine",      weight: 2,  color: "#fbbf24", textColor: "#0f172a" },
+            
+            // UNCOMMON (Weight: 8)
+            { label: "Gainer 2kg",     weight: 8,  color: "#0ea5e9", textColor: "#ffffff" }, 
+            { label: "Carb 2kg",       weight: 8,  color: "#0284c7", textColor: "#ffffff" },
+
+            // COMMON (Weight: 20)
+            { label: "10% OFF",        weight: 20, color: "#334155", textColor: "#cbd5e1" },
+            { label: "20% OFF",        weight: 20, color: "#475569", textColor: "#ffffff" },
+            { label: "30% OFF",        weight: 20, color: "#334155", textColor: "#cbd5e1" },
+            { label: "40% OFF",        weight: 20, color: "#475569", textColor: "#ffffff" },
+            { label: "50% OFF",        weight: 20, color: "#334155", textColor: "#cbd5e1" },
+            { label: "Free Cardio",    weight: 20, color: "#475569", textColor: "#ffffff" },
+            { label: "Free Plan",      weight: 20, color: "#334155", textColor: "#cbd5e1" },
+        ];
+
+        const SPIN_DURATION_MS = 5500; // Slightly longer for dramatic effect
+
+        // DOM Elements
+        const canvas = document.getElementById('wheelCanvas');
+        const ctx = canvas.getContext('2d');
+        const spinBtn = document.getElementById('spinBtn');
+        const modalOverlay = document.getElementById('modalOverlay');
+        const modalContent = document.getElementById('modalContent');
+        const modalPrizeName = document.getElementById('modalPrizeName');
+        const yearSpan = document.getElementById('year');
+
+        // State
+        let currentRotation = 0;
+        let isSpinning = false;
+        const radius = canvas.width / 2;
+        const centerX = canvas.width / 2;
+        const centerY = canvas.height / 2;
+        const totalSegments = prizes.length;
+        const arcSize = (2 * Math.PI) / totalSegments;
+
+        // Set Footer Year
+        yearSpan.textContent = new Date().getFullYear();
+
+        // ---------------------------------------------------------
+        // LOGIC: Weighted Random
+        // ---------------------------------------------------------
+        function getWeightedWinner() {
+            const totalWeight = prizes.reduce((sum, item) => sum + item.weight, 0);
+            let random = Math.random() * totalWeight;
+            
+            for (let i = 0; i < prizes.length; i++) {
+                if (random < prizes[i].weight) {
+                    return { prize: prizes[i], index: i };
+                }
+                random -= prizes[i].weight;
+            }
+            return { prize: prizes[0], index: 0 };
+        }
+
+        // ---------------------------------------------------------
+        // RENDERING: Advanced Wheel Draw
+        // ---------------------------------------------------------
+        function drawWheel() {
+            ctx.clearRect(0, 0, canvas.width, canvas.height);
+            
+            // 1. Draw Segments
+            prizes.forEach((prize, i) => {
+                const angle = i * arcSize;
+                const endAngle = angle + arcSize;
+
+                ctx.save();
+                
+                // Segment
+                ctx.beginPath();
+                ctx.moveTo(centerX, centerY);
+                ctx.arc(centerX, centerY, radius - 15, angle, endAngle); // -15 for rim space
+                ctx.fillStyle = prize.color;
+                ctx.fill();
+                ctx.stroke();
+
+                // Inner Shadow for depth (Simulated)
+                ctx.beginPath();
+                ctx.moveTo(centerX, centerY);
+                ctx.arc(centerX, centerY, radius - 15, angle, endAngle);
+                const gradient = ctx.createRadialGradient(centerX, centerY, 0, centerX, centerY, radius);
+                gradient.addColorStop(0, 'rgba(0,0,0,0)');
+                gradient.addColorStop(1, 'rgba(0,0,0,0.15)');
+                ctx.fillStyle = gradient;
+                ctx.fill();
+
+                // Text
+                ctx.translate(centerX, centerY);
+                ctx.rotate(angle + arcSize / 2);
+                ctx.textAlign = "right";
+                ctx.fillStyle = prize.textColor;
+                ctx.font = "800 16px Inter";
+                // Text Shadow
+                ctx.shadowColor = "rgba(0,0,0,0.3)";
+                ctx.shadowBlur = 4;
+                ctx.fillText(prize.label, radius - 45, 6);
+                
+                ctx.restore();
+            });
+
+            // 2. Draw Outer Rim
+            ctx.beginPath();
+            ctx.arc(centerX, centerY, radius - 8, 0, 2 * Math.PI);
+            ctx.lineWidth = 16;
+            ctx.strokeStyle = '#1e293b'; // Slate 800
+            ctx.stroke();
+            
+            // 3. Draw Bolts/Lights on Rim
+            const totalBolts = 24;
+            const boltAngle = (2 * Math.PI) / totalBolts;
+            for(let i=0; i<totalBolts; i++) {
+                ctx.save();
+                ctx.translate(centerX, centerY);
+                ctx.rotate(i * boltAngle);
+                ctx.beginPath();
+                ctx.arc(radius - 8, 0, 3, 0, 2 * Math.PI);
+                ctx.fillStyle = (i % 2 === 0) ? '#f59e0b' : '#94a3b8'; // Gold and Slate dots
+                ctx.fill();
+                ctx.restore();
+            }
+        }
+
+        // ---------------------------------------------------------
+        // ANIMATION: Spin
+        // ---------------------------------------------------------
+        spinBtn.addEventListener('click', () => {
+            if (isSpinning) return;
+            isSpinning = true;
+            
+            // Button visual feedback
+            spinBtn.disabled = true;
+            spinBtn.innerHTML = `<span class="opacity-75">Spinning...</span>`;
+            
+            const { prize, index } = getWeightedWinner();
+            console.log("Result:", prize.label);
+
+            // Calculation for ending position
+            // We need to land the specific segment at 0 degrees (Right side)
+            // Logic: Target Rotation = 360 - (Center of winner segment angle)
+            const segmentAngleDeg = (index * 360 / totalSegments) + (360 / totalSegments / 2);
+            const targetRotation = 360 - segmentAngleDeg;
+            
+            const spins = 8 * 360; // More spins
+            // Randomize landing position slightly within the slice to look natural
+            const arcDeg = 360 / totalSegments;
+            const jitter = (Math.random() * (arcDeg * 0.8)) - (arcDeg * 0.4); 
+            
+            // Ensure strictly increasing rotation
+            const currentMod = currentRotation % 360;
+            const distance = (targetRotation - currentMod + 360) % 360;
+            const finalRotation = currentRotation + distance + spins + jitter;
+            
+            // Apply CSS Transition
+            canvas.style.transition = `transform ${SPIN_DURATION_MS}ms cubic-bezier(0.1, 0, 0.18, 1)`; // Ease-out-quart feel
+            canvas.style.transform = `rotate(${finalRotation}deg)`;
+            
+            currentRotation = finalRotation;
+
+            // Wait for end
+            setTimeout(() => {
+                isSpinning = false;
+                spinBtn.disabled = false;
+                spinBtn.innerHTML = `<span class="relative z-10 flex items-center gap-2">SPIN AGAIN</span><div class="absolute top-0 -left-[100%] w-full h-full bg-gradient-to-r from-transparent via-white/30 to-transparent skew-x-12 transition-all duration-700 group-hover:left-[100%]"></div>`;
+                showModal(prize);
+            }, SPIN_DURATION_MS + 100);
+        });
+
+        // ---------------------------------------------------------
+        // MODAL & EFFECTS
+        // ---------------------------------------------------------
+        function showModal(prize) {
+            modalPrizeName.textContent = prize.label;
+            
+            // Dynamic styling based on rarity
+            if (prize.weight <= 2) {
+                // Rare
+                modalPrizeName.className = "relative text-4xl md:text-5xl font-black text-amber-400 drop-shadow-[0_0_10px_rgba(251,191,36,0.5)]";
+                triggerConfetti(200); // Massive confetti
+            } else if (prize.weight <= 8) {
+                // Uncommon
+                modalPrizeName.className = "relative text-3xl md:text-4xl font-black text-sky-400 drop-shadow-[0_0_8px_rgba(14,165,233,0.5)]";
+                triggerConfetti(80);
+            } else {
+                // Common
+                modalPrizeName.className = "relative text-3xl md:text-4xl font-black text-white";
+            }
+
+            modalOverlay.classList.remove('hidden');
+            // Force reflow
+            void modalOverlay.offsetWidth;
+            
+            modalOverlay.classList.remove('opacity-0');
+            modalContent.classList.remove('scale-90', 'translate-y-4');
+            modalContent.classList.add('scale-100', 'translate-y-0');
+        }
+
+        function closeModal() {
+            modalOverlay.classList.add('opacity-0');
+            modalContent.classList.remove('scale-100', 'translate-y-0');
+            modalContent.classList.add('scale-90', 'translate-y-4');
+            
+            setTimeout(() => {
+                modalOverlay.classList.add('hidden');
+            }, 500);
+        }
+
+        function triggerConfetti(amount = 100) {
+            const colors = ['#fbbf24', '#f59e0b', '#3b82f6', '#ffffff', '#ef4444', '#10b981', '#f472b6'];
+            
+            for (let i = 0; i < amount; i++) {
+                const conf = document.createElement('div');
+                conf.classList.add('confetti');
+                
+                // Random properties
+                const bg = colors[Math.floor(Math.random() * colors.length)];
+                const left = Math.random() * 100;
+                
+                // Varied Fall Duration
+                const animDuration = Math.random() * 3 + 2.5; // 2.5s - 5.5s
+                const delay = Math.random() * 2.5; // Stagger start
+                
+                // Random Size
+                const sizeBase = Math.random() * 10 + 6;
+                const width = sizeBase;
+                const height = sizeBase * (Math.random() > 0.5 ? 1.4 : 0.8); // Rectangles or squares
+                
+                conf.style.width = width + 'px';
+                conf.style.height = height + 'px';
+                conf.style.left = left + 'vw';
+                conf.style.top = -20 + 'px';
+                conf.style.backgroundColor = bg;
+                
+                // Drift Simulation (CSS Variable)
+                // Random drift between -150px and 150px
+                const drift = (Math.random() - 0.5) * 300 + 'px';
+                conf.style.setProperty('--drift', drift);
+
+                // Shapes
+                const shapeRoll = Math.random();
+                if (shapeRoll < 0.25) {
+                    conf.style.borderRadius = '50%'; // Circle
+                } else if (shapeRoll < 0.5) {
+                    conf.style.clipPath = 'polygon(50% 0%, 0% 100%, 100% 100%)'; // Triangle
+                } 
+                // else Rectangle
+
+                // Animation
+                conf.style.animation = `confetti-fall ${animDuration}s linear ${delay}s forwards`;
+                
+                document.body.appendChild(conf);
+
+                // Cleanup
+                setTimeout(() => conf.remove(), (animDuration + delay) * 1000);
+            }
+        }
+
+        // Initialize Wheel
+        drawWheel();
+
+    </script>
+</body>
+</html>

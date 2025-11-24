@@ -845,5 +845,20 @@ def attendance():
                          datetime=datetime,
                          now=datetime.now())
 
+@app.route('/gift1')
+def lottery_page():
+    """Render the main lottery page"""
+    return render_template('gift1.html')
+
+@app.route('/gift2')
+def lottery_page():
+    """Render the main lottery page"""
+    return render_template('gift2.html')
+
+@app.route('/gift3')
+def lottery_page():
+    """Render the main lottery page"""
+    return render_template('gift3.html')
+
 if __name__ == '__main__':
     app.run(host='0.0.0.0', port=5000, debug=True)
