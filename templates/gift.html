@@ -1,0 +1,68 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Sports Club Lottery</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/gift.css') }}">
+</head>
+<body>
+    <div class="container">
+        <header class="header">
+            <div class="logo">
+                <h1>🏆 Elite Sports Club</h1>
+                <p class="subtitle">Premium Lottery Draw</p>
+            </div>
+        </header>
+
+        <main class="main-content">
+            <div class="lottery-card">
+                <div class="card-header">
+                    <h2>Welcome to Our Exclusive Lottery</h2>
+                    <p>Try your luck and win amazing sports prizes!</p>
+                </div>
+
+                <div class="prizes-section">
+                    <h3>Available Prizes</h3>
+                    <div class="prizes-grid" id="prizesGrid">
+                        <!-- Prizes will be populated by JavaScript -->
+                    </div>
+                </div>
+
+                <div class="lottery-wheel-section">
+                    <h3>Spin the Wheel</h3>
+                    <div class="wheel-container">
+                        <div class="wheel" id="lotteryWheel">
+                            <!-- Wheel segments will be populated by JavaScript -->
+                        </div>
+                        <div class="wheel-center">
+                            <div class="wheel-pointer"></div>
+                        </div>
+                    </div>
+                    
+                    <button class="draw-button" id="drawButton">
+                        <span class="button-text">SPIN TO WIN</span>
+                        <div class="button-glow"></div>
+                    </button>
+                </div>
+
+                <div class="result-section" id="resultSection" style="display: none;">
+                    <div class="result-card">
+                        <div class="confetti"></div>
+                        <h3 class="result-title">🎉 Congratulations! 🎉</h3>
+                        <div class="result-gift" id="resultGift"></div>
+                        <p class="result-message">Please contact the club manager to claim your prize!</p>
+                        <button class="close-result" id="closeResult">Close</button>
+                    </div>
+                </div>
+            </div>
+        </main>
+
+        <footer class="footer">
+            <p>&copy; 2024 Elite Sports Club. All rights reserved.</p>
+        </footer>
+    </div>
+
+    <script src="{{ url_for('static', filename='js/gift.js') }}"></script>
+</body>
+</html>
